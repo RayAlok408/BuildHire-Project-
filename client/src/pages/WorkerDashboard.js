@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 
-const API = 'http://localhost:5000';
+const API = 'https://buildhire-server.onrender.com';
 const socket = io(API);
 
 function WorkerDashboard() {
@@ -16,6 +16,13 @@ function WorkerDashboard() {
   const user = JSON.parse(localStorage.getItem('user'));
   const headers = { Authorization: `Bearer ${token}` };
 
+  const fetchJobs = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API}/api/jobs/open`, { headers });
+      setJobs(res.data);
+    } catch (err) { console.log(err); }
+  }, []);
+
   useEffect(() => {
     fetchJobs();
     socket.on(`job_for_${user?.id}`, (newJob) => {
@@ -24,14 +31,7 @@ function WorkerDashboard() {
       setTimeout(() => setMsg(''), 5000);
     });
     return () => socket.off(`job_for_${user?.id}`);
-  }, []);
-
-  const fetchJobs = async () => {
-    try {
-      const res = await axios.get(`${API}/api/jobs/open`, { headers });
-      setJobs(res.data);
-    } catch (err) { console.log(err); }
-  };
+  }, [fetchJobs, user?.id]);
 
   const acceptJob = async (job) => {
     await axios.put(`${API}/api/jobs/accept/${job._id}`, {}, { headers });
@@ -61,9 +61,7 @@ function WorkerDashboard() {
           </div>
         </nav>
         <div style={styles.container}>
-          <div style={styles.successBanner}>
-            Job Accepted — Head to client location now
-          </div>
+          <div style={styles.successBanner}>Job Accepted — Head to client location now</div>
           <div style={styles.detailsGrid}>
             <div style={styles.detailBox}>
               <p style={styles.detailLabel}>Job Title</p>
@@ -88,20 +86,10 @@ function WorkerDashboard() {
           </div>
           <div style={styles.mapWrap}>
             <p style={styles.mapLabel}>Client Location</p>
-            <iframe
-              title="map"
-              width="100%"
-              height="260"
-              style={{ border: 0, borderRadius: '12px', display: 'block' }}
-              src="https://maps.google.com/maps?q=30.9010,75.8573&z=14&output=embed"
-            />
+            <iframe title="map" width="100%" height="260" style={{ border: 0, borderRadius: '12px', display: 'block' }} src="https://maps.google.com/maps?q=30.9010,75.8573&z=14&output=embed" />
           </div>
-          <button style={styles.mapBtn} onClick={() => openMap(acceptedJob)}>
-            Get Directions in Google Maps
-          </button>
-          <button style={styles.backBtn} onClick={() => setAcceptedJob(null)}>
-            Back to Dashboard
-          </button>
+          <button style={styles.mapBtn} onClick={() => openMap(acceptedJob)}>Get Directions in Google Maps</button>
+          <button style={styles.backBtn} onClick={() => setAcceptedJob(null)}>Back to Dashboard</button>
         </div>
       </div>
     );
@@ -167,9 +155,7 @@ function WorkerDashboard() {
                 <span style={styles.metaText}>Within 10 km</span>
               </div>
             </div>
-            <button style={styles.acceptBtn} onClick={() => acceptJob(job)}>
-              Accept This Job
-            </button>
+            <button style={styles.acceptBtn} onClick={() => acceptJob(job)}>Accept This Job</button>
           </div>
         ))}
       </div>

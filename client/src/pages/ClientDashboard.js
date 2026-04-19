@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const API = 'http://localhost:5000';
+const API = 'https://buildhire-server.onrender.com';
 
 function ClientDashboard() {
   const navigate = useNavigate();
@@ -15,14 +15,14 @@ function ClientDashboard() {
   const user = JSON.parse(localStorage.getItem('user'));
   const headers = { Authorization: `Bearer ${token}` };
 
-  useEffect(() => { fetchJobs(); }, []);
-
-  const fetchJobs = async () => {
+  const fetchJobs = useCallback(async () => {
     try {
       const res = await axios.get(`${API}/api/jobs/myjobs`, { headers });
       setJobs(res.data);
     } catch (err) { console.log(err); }
-  };
+  }, []);
+
+  useEffect(() => { fetchJobs(); }, [fetchJobs]);
 
   const handle = e => setForm({ ...form, [e.target.name]: e.target.value });
 
