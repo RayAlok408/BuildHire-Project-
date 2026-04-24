@@ -1,110 +1,179 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function Home() {
   const navigate = useNavigate();
+  const heroRef = useRef(null);
+
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { overflow-x: hidden; }
+      .bh-page { font-family: 'DM Sans', sans-serif; background: #fafaf8; color: #1a1a1a; }
+      .bh-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 6%; background: rgba(250,250,248,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+      .bh-logo { display: flex; align-items: center; gap: 0.7rem; cursor: pointer; }
+      .bh-logo-mark { width: 40px; height: 40px; background: #1a1a1a; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #f5f01a; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; }
+      .bh-logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; color: #1a1a1a; }
+      .bh-nav-links { display: flex; gap: 0.8rem; align-items: center; }
+      .bh-nav-login { padding: 0.6rem 1.3rem; background: transparent; border: 1.5px solid #d4d4d4; color: #1a1a1a; border-radius: 100px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; }
+      .bh-nav-login:hover { border-color: #1a1a1a; }
+      .bh-nav-cta { padding: 0.6rem 1.3rem; background: #1a1a1a; border: none; color: #f5f01a; border-radius: 100px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; }
+      .bh-nav-cta:hover { background: #333; transform: translateY(-1px); }
+      .bh-hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 8rem 6% 5rem; position: relative; overflow: hidden; }
+      .bh-hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 20%, #f5f01a22 0%, transparent 70%); pointer-events: none; }
+      .bh-hero-grid { position: absolute; inset: 0; background-image: linear-gradient(#e5e5e5 1px, transparent 1px), linear-gradient(90deg, #e5e5e5 1px, transparent 1px); background-size: 40px 40px; opacity: 0.4; pointer-events: none; }
+      .bh-live-pill { display: inline-flex; align-items: center; gap: 0.5rem; background: #fff; border: 1px solid #e5e5e5; padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.82rem; font-weight: 500; color: #555; margin-bottom: 2rem; }
+      .bh-live-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; animation: livePulse 2s infinite; }
+      @keyframes livePulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(1.3); } }
+      .bh-hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(3rem, 7vw, 6rem); font-weight: 800; line-height: 1.05; color: #1a1a1a; margin-bottom: 1.5rem; position: relative; z-index: 1; }
+      .bh-hero h1 em { font-style: normal; color: transparent; -webkit-text-stroke: 2px #1a1a1a; }
+      .bh-hero h1 .bh-highlight { position: relative; display: inline-block; }
+      .bh-hero h1 .bh-highlight::after { content:''; position:absolute; bottom: 4px; left:0; right:0; height:12px; background:#f5f01a; z-index:-1; border-radius:4px; }
+      .bh-hero p { font-size: 1.15rem; color: #666; max-width: 500px; line-height: 1.75; margin-bottom: 2.5rem; font-weight: 300; position: relative; z-index: 1; }
+      .bh-hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; position: relative; z-index: 1; margin-bottom: 4rem; }
+      .bh-btn-main { padding: 1rem 2.2rem; background: #1a1a1a; color: #f5f01a; border: none; border-radius: 100px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+      .bh-btn-main:hover { background: #333; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+      .bh-btn-ghost { padding: 1rem 2.2rem; background: transparent; color: #1a1a1a; border: 1.5px solid #d4d4d4; border-radius: 100px; font-size: 1rem; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+      .bh-btn-ghost:hover { border-color: #1a1a1a; transform: translateY(-2px); }
+      .bh-stats-bar { display: flex; gap: 0; background: #fff; border: 1px solid #e5e5e5; border-radius: 20px; overflow: hidden; position: relative; z-index: 1; }
+      .bh-stat-item { padding: 1.2rem 2rem; text-align: center; border-right: 1px solid #e5e5e5; flex: 1; }
+      .bh-stat-item:last-child { border-right: none; }
+      .bh-stat-num { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: #1a1a1a; display: block; }
+      .bh-stat-lbl { font-size: 0.78rem; color: #999; margin-top: 0.2rem; display: block; }
+      .bh-marquee-wrap { background: #1a1a1a; color: #f5f01a; padding: 1rem 0; overflow: hidden; white-space: nowrap; }
+      .bh-marquee { display: inline-block; animation: marquee 20s linear infinite; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem; letter-spacing: 0.05em; }
+      @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+      .bh-how { padding: 7rem 6%; background: #fafaf8; }
+      .bh-section-eyebrow { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #999; margin-bottom: 0.8rem; }
+      .bh-section-h2 { font-family: 'Syne', sans-serif; font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; color: #1a1a1a; margin-bottom: 4rem; }
+      .bh-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
+      .bh-step { background: #fff; border: 1px solid #e5e5e5; border-radius: 24px; padding: 2.5rem 2rem; position: relative; transition: transform 0.2s, box-shadow 0.2s; }
+      .bh-step:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+      .bh-step-num { font-family: 'Syne', sans-serif; font-size: 4rem; font-weight: 800; color: #f5f01a; line-height: 1; margin-bottom: 1rem; }
+      .bh-step-icon { font-size: 2rem; margin-bottom: 1rem; }
+      .bh-step h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; color: #1a1a1a; margin-bottom: 0.5rem; }
+      .bh-step p { font-size: 0.88rem; color: #777; line-height: 1.65; }
+      .bh-services { padding: 7rem 6%; background: #1a1a1a; }
+      .bh-services .bh-section-eyebrow { color: #666; }
+      .bh-services .bh-section-h2 { color: #fff; }
+      .bh-services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
+      .bh-service-card { background: #242424; border: 1px solid #333; border-radius: 20px; padding: 1.8rem 1.5rem; cursor: pointer; transition: all 0.2s; }
+      .bh-service-card:hover { background: #f5f01a; border-color: #f5f01a; transform: translateY(-4px); }
+      .bh-service-card:hover .bh-service-name { color: #1a1a1a; }
+      .bh-service-card:hover .bh-service-desc { color: #444; }
+      .bh-service-icon { font-size: 2.2rem; margin-bottom: 1rem; }
+      .bh-service-name { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 0.3rem; }
+      .bh-service-desc { font-size: 0.8rem; color: #666; line-height: 1.5; }
+      .bh-features { padding: 7rem 6%; background: #fff; }
+      .bh-features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+      .bh-feature { background: #fafaf8; border: 1px solid #eee; border-radius: 20px; padding: 2rem; }
+      .bh-feature-icon { width: 48px; height: 48px; background: #f5f01a; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 1.2rem; }
+      .bh-feature h3 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: #1a1a1a; margin-bottom: 0.5rem; }
+      .bh-feature p { font-size: 0.88rem; color: #777; line-height: 1.65; }
+      .bh-cta { padding: 7rem 6%; background: #f5f01a; text-align: center; }
+      .bh-cta h2 { font-family: 'Syne', sans-serif; font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; color: #1a1a1a; margin-bottom: 1rem; }
+      .bh-cta p { font-size: 1.1rem; color: #555; margin-bottom: 2.5rem; }
+      .bh-cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+      .bh-cta-btn-dark { padding: 1rem 2.5rem; background: #1a1a1a; color: #f5f01a; border: none; border-radius: 100px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+      .bh-cta-btn-dark:hover { background: #333; transform: translateY(-2px); }
+      .bh-cta-btn-outline { padding: 1rem 2.5rem; background: transparent; color: #1a1a1a; border: 2px solid #1a1a1a; border-radius: 100px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+      .bh-cta-btn-outline:hover { background: #1a1a1a; color: #f5f01a; transform: translateY(-2px); }
+      .bh-footer { background: #111; padding: 2.5rem 6%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+      .bh-footer-left { display: flex; align-items: center; gap: 0.7rem; }
+      .bh-footer-logo-mark { width: 32px; height: 32px; background: #f5f01a; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #1a1a1a; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.75rem; }
+      .bh-footer-logo-text { font-family: 'Syne', sans-serif; font-weight: 700; color: #fff; font-size: 1rem; }
+      .bh-footer-right { color: #555; font-size: 0.85rem; }
+      .bh-footer-links { display: flex; gap: 1.5rem; margin-top: 0.3rem; }
+      .bh-footer-link { color: #555; cursor: pointer; font-size: 0.85rem; transition: color 0.2s; }
+      .bh-footer-link:hover { color: #f5f01a; }
+    `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+
+  const marqueeText = '⚡ Real-time notifications &nbsp;&nbsp;&nbsp; 📍 Location based matching &nbsp;&nbsp;&nbsp; ⭐ Verified workers &nbsp;&nbsp;&nbsp; 🗺️ Live map directions &nbsp;&nbsp;&nbsp; 🔒 Secure platform &nbsp;&nbsp;&nbsp; ';
+
   return (
-    <div style={styles.page}>
-      <nav style={styles.nav}>
-        <div style={styles.navLogo}>
-          <div style={styles.logoIcon}>BH</div>
-          <span style={styles.logoText}>BuildHire</span>
+    <div className="bh-page">
+      <nav className="bh-nav">
+        <div className="bh-logo">
+          <div className="bh-logo-mark">BH</div>
+          <span className="bh-logo-text">BuildHire</span>
         </div>
-        <div style={styles.navLinks}>
-          <button style={styles.navBtn} onClick={() => navigate('/login')}>Login</button>
-          <button style={styles.navBtnFill} onClick={() => navigate('/register')}>Get Started</button>
+        <div className="bh-nav-links">
+          <button className="bh-nav-login" onClick={() => navigate('/login')}>Login</button>
+          <button className="bh-nav-cta" onClick={() => navigate('/register')}>Get Started</button>
         </div>
       </nav>
 
-      <div style={styles.hero}>
-        <div style={styles.heroBadge}>
-          <span style={styles.badgeDot}></span>
+      <div className="bh-hero" ref={heroRef}>
+        <div className="bh-hero-bg"></div>
+        <div className="bh-hero-grid"></div>
+        <div className="bh-live-pill">
+          <span className="bh-live-dot"></span>
           Workers available near you right now
         </div>
-        <h1 style={styles.heroTitle}>
+        <h1>
           Your home problem,<br />
-          <span style={styles.heroTitleBlue}>solved in minutes</span>
+          solved <span className="bh-highlight">instantly</span>
         </h1>
-        <p style={styles.heroSub}>
-          Post a job and skilled workers near you get notified instantly. No waiting, no calls — just fast, reliable service at your doorstep.
-        </p>
-        <div style={styles.heroButtons}>
-          <button style={styles.btnPrimary} onClick={() => navigate('/register')}>
-            Post a Job Now
-          </button>
-          <button style={styles.btnOutline} onClick={() => navigate('/register')}>
-            Join as Worker
-          </button>
+        <p>Post a job and nearby skilled workers get notified in real time. No waiting, no calls — fast, reliable service at your doorstep.</p>
+        <div className="bh-hero-btns">
+          <button className="bh-btn-main" onClick={() => navigate('/register')}>Post a Job Now</button>
+          <button className="bh-btn-ghost" onClick={() => navigate('/register')}>Join as Worker →</button>
         </div>
-        <div style={styles.heroStats}>
-          <div style={styles.heroStat}>
-            <span style={styles.heroStatNum}>500+</span>
-            <span style={styles.heroStatLabel}>Skilled Workers</span>
+        <div className="bh-stats-bar">
+          <div className="bh-stat-item">
+            <span className="bh-stat-num">500+</span>
+            <span className="bh-stat-lbl">Skilled Workers</span>
           </div>
-          <div style={styles.heroStatDivider}></div>
-          <div style={styles.heroStat}>
-            <span style={styles.heroStatNum}>1000+</span>
-            <span style={styles.heroStatLabel}>Jobs Completed</span>
+          <div className="bh-stat-item">
+            <span className="bh-stat-num">1000+</span>
+            <span className="bh-stat-lbl">Jobs Completed</span>
           </div>
-          <div style={styles.heroStatDivider}></div>
-          <div style={styles.heroStat}>
-            <span style={styles.heroStatNum}>4.8★</span>
-            <span style={styles.heroStatLabel}>Average Rating</span>
+          <div className="bh-stat-item">
+            <span className="bh-stat-num">4.8★</span>
+            <span className="bh-stat-lbl">Avg Rating</span>
           </div>
-          <div style={styles.heroStatDivider}></div>
-          <div style={styles.heroStat}>
-            <span style={styles.heroStatNum}>10km</span>
-            <span style={styles.heroStatLabel}>Search Radius</span>
+          <div className="bh-stat-item">
+            <span className="bh-stat-num">10km</span>
+            <span className="bh-stat-lbl">Search Radius</span>
           </div>
         </div>
       </div>
 
-      <div style={styles.howSection}>
-        <div style={styles.sectionTag}>How it works</div>
-        <h2 style={styles.sectionTitle}>Get help in 4 simple steps</h2>
-        <p style={styles.sectionSub}>From posting to completion — fast, simple and reliable</p>
-        <div style={styles.steps}>
+      <div className="bh-marquee-wrap">
+        <span className="bh-marquee">
+          {marqueeText.repeat(4)}
+        </span>
+      </div>
+
+      <div className="bh-how">
+        <div className="bh-section-eyebrow">How it works</div>
+        <h2 className="bh-section-h2">Get help in 4 simple steps</h2>
+        <div className="bh-steps">
           {[
-            { num: '1', icon: '📝', title: 'Post your requirement', desc: 'Describe what you need — tap repair, wiring, painting, carpentry and more. Takes less than a minute.' },
-            { num: '2', icon: '📡', title: 'Instant notifications', desc: 'All available workers within 10km receive a real-time alert on their phone immediately.' },
-            { num: '3', icon: '🤝', title: 'Worker accepts', desc: 'The nearest available worker accepts your job and heads to your location with directions.' },
-            { num: '4', icon: '⭐', title: 'Rate the service', desc: 'After the job is done, rate and review to help others choose trusted workers.' },
+            { num: '01', icon: '📝', title: 'Post your requirement', desc: 'Describe what you need in seconds. Tap repair, wiring, painting, carpentry — we cover it all.' },
+            { num: '02', icon: '📡', title: 'Workers get notified', desc: 'All available skilled workers within 10km receive an instant real-time notification.' },
+            { num: '03', icon: '🤝', title: 'Worker accepts & arrives', desc: 'The nearest available worker accepts your job and gets map directions to your location.' },
+            { num: '04', icon: '⭐', title: 'Rate the service', desc: 'After completion, rate and review the worker to build community trust.' },
           ].map((s, i) => (
-            <div key={i} style={styles.stepCard}>
-              <div style={styles.stepNum}>{s.num}</div>
-              <div style={styles.stepIcon}>{s.icon}</div>
-              <h3 style={styles.stepTitle}>{s.title}</h3>
-              <p style={styles.stepDesc}>{s.desc}</p>
+            <div key={i} className="bh-step">
+              <div className="bh-step-num">{s.num}</div>
+              <div className="bh-step-icon">{s.icon}</div>
+              <h3>{s.title}</h3>
+              <p>{s.desc}</p>
             </div>
           ))}
         </div>
       </div>
 
-      <div style={styles.featuresSection}>
-        <div style={styles.sectionTag}>Why BuildHire</div>
-        <h2 style={styles.sectionTitle}>Built for speed and trust</h2>
-        <div style={styles.featuresGrid}>
-          {[
-            { icon: '⚡', title: 'Real-time matching', desc: 'Workers get notified the moment you post. No delays, no waiting.' },
-            { icon: '📍', title: 'Location based', desc: 'Only workers within 10km of you are notified — guaranteed fast arrival.' },
-            { icon: '🔒', title: 'Secure login', desc: 'Your account is protected with JWT authentication and encrypted passwords.' },
-            { icon: '⭐', title: 'Ratings & reviews', desc: 'Every worker has a public rating so you always know who you are hiring.' },
-            { icon: '🗺️', title: 'Live map directions', desc: 'Workers get Google Maps directions to your location the moment they accept.' },
-            { icon: '📱', title: 'Works on any device', desc: 'Use BuildHire on your phone, tablet or computer — fully responsive.' },
-          ].map((f, i) => (
-            <div key={i} style={styles.featureCard}>
-              <div style={styles.featureIcon}>{f.icon}</div>
-              <h3 style={styles.featureTitle}>{f.title}</h3>
-              <p style={styles.featureDesc}>{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div style={styles.skillsSection}>
-        <div style={styles.sectionTag}>Services</div>
-        <h2 style={styles.sectionTitle}>What can we help you with?</h2>
-        <div style={styles.skillsGrid}>
+      <div className="bh-services">
+        <div className="bh-section-eyebrow">Our services</div>
+        <h2 className="bh-section-h2">What can we help you with?</h2>
+        <div className="bh-services-grid">
           {[
             { icon: '🔧', name: 'Plumber', desc: 'Tap, pipe & drainage repairs' },
             { icon: '⚡', name: 'Electrician', desc: 'Wiring, switches & fittings' },
@@ -113,107 +182,60 @@ function Home() {
             { icon: '🧹', name: 'Cleaner', desc: 'Home & office cleaning' },
             { icon: '➕', name: 'More soon', desc: 'More services coming' },
           ].map((s, i) => (
-            <div key={i} style={styles.skillCard} onClick={() => navigate('/register')}>
-              <div style={styles.skillIcon}>{s.icon}</div>
-              <h3 style={styles.skillName}>{s.name}</h3>
-              <p style={styles.skillDesc}>{s.desc}</p>
-              <span style={styles.skillArrow}>→</span>
+            <div key={i} className="bh-service-card" onClick={() => navigate('/register')}>
+              <div className="bh-service-icon">{s.icon}</div>
+              <div className="bh-service-name">{s.name}</div>
+              <div className="bh-service-desc">{s.desc}</div>
             </div>
           ))}
         </div>
       </div>
 
-      <div style={styles.ctaSection}>
-        <div style={styles.ctaInner}>
-          <h2 style={styles.ctaTitle}>Ready to get started?</h2>
-          <p style={styles.ctaSub}>Join thousands of clients and skilled workers on BuildHire today</p>
-          <div style={styles.ctaButtons}>
-            <button style={styles.ctaBtnWhite} onClick={() => navigate('/register')}>Post a Job</button>
-            <button style={styles.ctaBtnOutline} onClick={() => navigate('/register')}>Become a Worker</button>
-          </div>
+      <div className="bh-features">
+        <div className="bh-section-eyebrow">Why BuildHire</div>
+        <h2 className="bh-section-h2">Built for speed and trust</h2>
+        <div className="bh-features-grid">
+          {[
+            { icon: '⚡', title: 'Real-time matching', desc: 'Workers get notified the moment you post. No delays, no waiting around.' },
+            { icon: '📍', title: 'Location based', desc: 'Only workers within 10km are notified — guaranteed fast arrival.' },
+            { icon: '🔒', title: 'Secure platform', desc: 'JWT authentication and encrypted passwords keep your account safe.' },
+            { icon: '⭐', title: 'Ratings & reviews', desc: 'Every worker has a public rating so you always know who you are hiring.' },
+            { icon: '🗺️', title: 'Live map directions', desc: 'Workers get Google Maps directions to your location instantly on acceptance.' },
+            { icon: '📱', title: 'Any device', desc: 'Use BuildHire on your phone, tablet or computer — fully responsive.' },
+          ].map((f, i) => (
+            <div key={i} className="bh-feature">
+              <div className="bh-feature-icon">{f.icon}</div>
+              <h3>{f.title}</h3>
+              <p>{f.desc}</p>
+            </div>
+          ))}
         </div>
       </div>
 
-      <footer style={styles.footer}>
-        <div style={styles.footerTop}>
-          <div style={styles.navLogo}>
-            <div style={{ ...styles.logoIcon, width: '32px', height: '32px', fontSize: '0.75rem' }}>BH</div>
-            <span style={{ ...styles.logoText, color: '#fff' }}>BuildHire</span>
-          </div>
-          <p style={styles.footerTagline}>Connecting clients with skilled workers</p>
+      <div className="bh-cta">
+        <h2>Start using BuildHire today</h2>
+        <p>Join thousands of clients and workers — it is completely free to get started</p>
+        <div className="bh-cta-btns">
+          <button className="bh-cta-btn-dark" onClick={() => navigate('/register')}>Post a Job</button>
+          <button className="bh-cta-btn-outline" onClick={() => navigate('/register')}>Become a Worker</button>
         </div>
-        <div style={styles.footerBottom}>
-          <p style={styles.footerText}>© 2026 BuildHire. All rights reserved.</p>
-          <div style={styles.footerLinks}>
-            <span style={styles.footerLink} onClick={() => navigate('/register')}>Sign Up</span>
-            <span style={styles.footerLink} onClick={() => navigate('/login')}>Login</span>
+      </div>
+
+      <footer className="bh-footer">
+        <div className="bh-footer-left">
+          <div className="bh-footer-logo-mark">BH</div>
+          <span className="bh-footer-logo-text">BuildHire</span>
+        </div>
+        <div className="bh-footer-right">
+          <div>© 2026 BuildHire. All rights reserved.</div>
+          <div className="bh-footer-links">
+            <span className="bh-footer-link" onClick={() => navigate('/register')}>Sign Up</span>
+            <span className="bh-footer-link" onClick={() => navigate('/login')}>Login</span>
           </div>
         </div>
       </footer>
     </div>
   );
 }
-
-const styles = {
-  page: { minHeight: '100vh', background: '#ffffff', fontFamily: "'Segoe UI', sans-serif" },
-  nav: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 6%', background: '#fff', borderBottom: '1px solid #f1f5f9', position: 'sticky', top: 0, zIndex: 100, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' },
-  navLogo: { display: 'flex', alignItems: 'center', gap: '0.6rem' },
-  logoIcon: { width: '38px', height: '38px', background: '#2563eb', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '800', fontSize: '0.75rem' },
-  logoText: { fontSize: '1.3rem', fontWeight: '800', color: '#1e293b' },
-  navLinks: { display: 'flex', gap: '0.8rem', alignItems: 'center' },
-  navBtn: { padding: '0.5rem 1.2rem', background: 'transparent', border: '1.5px solid #e2e8f0', color: '#475569', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' },
-  navBtnFill: { padding: '0.5rem 1.2rem', background: '#2563eb', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600' },
-  hero: { padding: '6rem 6% 5rem', textAlign: 'center', background: 'linear-gradient(160deg, #eff6ff 0%, #f8faff 60%, #ffffff 100%)' },
-  heroBadge: { display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#dcfce7', color: '#16a34a', padding: '0.4rem 1.2rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600', marginBottom: '1.8rem' },
-  badgeDot: { width: '8px', height: '8px', background: '#16a34a', borderRadius: '50%', display: 'inline-block', animation: 'pulse 2s infinite' },
-  heroTitle: { fontSize: '3.8rem', fontWeight: '800', color: '#0f172a', margin: '0 0 1.2rem', lineHeight: 1.15 },
-  heroTitleBlue: { color: '#2563eb' },
-  heroSub: { fontSize: '1.15rem', color: '#64748b', maxWidth: '540px', margin: '0 auto 2.5rem', lineHeight: 1.75 },
-  heroButtons: { display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '3.5rem' },
-  btnPrimary: { padding: '1rem 2.2rem', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '1rem', cursor: 'pointer', fontWeight: '700', boxShadow: '0 4px 14px rgba(37,99,235,0.4)' },
-  btnOutline: { padding: '1rem 2.2rem', background: '#fff', color: '#2563eb', border: '2px solid #2563eb', borderRadius: '12px', fontSize: '1rem', cursor: 'pointer', fontWeight: '700' },
-  heroStats: { display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '2rem', flexWrap: 'wrap', background: '#fff', padding: '1.5rem 2rem', borderRadius: '16px', border: '1px solid #e2e8f0', maxWidth: '600px', margin: '0 auto', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' },
-  heroStat: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
-  heroStatNum: { fontSize: '1.6rem', fontWeight: '800', color: '#1e293b' },
-  heroStatLabel: { fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.2rem' },
-  heroStatDivider: { width: '1px', height: '36px', background: '#e2e8f0' },
-  howSection: { padding: '6rem 6%', background: '#fff', textAlign: 'center' },
-  sectionTag: { display: 'inline-block', background: '#eff6ff', color: '#2563eb', padding: '0.3rem 1rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '700', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' },
-  sectionTitle: { fontSize: '2.2rem', fontWeight: '800', color: '#0f172a', margin: '0 0 0.5rem' },
-  sectionSub: { fontSize: '1rem', color: '#64748b', margin: '0 0 3rem' },
-  steps: { display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' },
-  stepCard: { background: '#f8faff', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '2.5rem 1.5rem 2rem', width: '220px', textAlign: 'center', position: 'relative' },
-  stepNum: { position: 'absolute', top: '-16px', left: '50%', transform: 'translateX(-50%)', background: '#2563eb', color: '#fff', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: '800' },
-  stepIcon: { fontSize: '2.8rem', marginBottom: '1rem' },
-  stepTitle: { fontSize: '1rem', fontWeight: '700', color: '#1e293b', margin: '0 0 0.5rem' },
-  stepDesc: { fontSize: '0.85rem', color: '#64748b', margin: 0, lineHeight: 1.6 },
-  featuresSection: { padding: '6rem 6%', background: '#f8faff', textAlign: 'center' },
-  featuresGrid: { display: 'flex', gap: '1.2rem', justifyContent: 'center', flexWrap: 'wrap', marginTop: '2rem' },
-  featureCard: { background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1.8rem', width: '240px', textAlign: 'left' },
-  featureIcon: { fontSize: '2rem', marginBottom: '1rem' },
-  featureTitle: { fontSize: '1rem', fontWeight: '700', color: '#1e293b', margin: '0 0 0.5rem' },
-  featureDesc: { fontSize: '0.85rem', color: '#64748b', margin: 0, lineHeight: 1.6 },
-  skillsSection: { padding: '6rem 6%', background: '#fff', textAlign: 'center' },
-  skillsGrid: { display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginTop: '2rem' },
-  skillCard: { background: '#f8faff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1.5rem', width: '160px', textAlign: 'center', cursor: 'pointer', position: 'relative' },
-  skillIcon: { fontSize: '2.2rem', marginBottom: '0.8rem' },
-  skillName: { fontSize: '0.95rem', fontWeight: '700', color: '#1e293b', margin: '0 0 0.3rem' },
-  skillDesc: { fontSize: '0.78rem', color: '#94a3b8', margin: '0 0 0.8rem' },
-  skillArrow: { fontSize: '0.85rem', color: '#2563eb', fontWeight: '700' },
-  ctaSection: { padding: '6rem 6%', background: '#0f172a' },
-  ctaInner: { maxWidth: '600px', margin: '0 auto', textAlign: 'center' },
-  ctaTitle: { fontSize: '2.5rem', fontWeight: '800', color: '#fff', margin: '0 0 1rem' },
-  ctaSub: { fontSize: '1rem', color: '#94a3b8', margin: '0 0 2.5rem', lineHeight: 1.7 },
-  ctaButtons: { display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' },
-  ctaBtnWhite: { padding: '1rem 2rem', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '1rem', cursor: 'pointer', fontWeight: '700' },
-  ctaBtnOutline: { padding: '1rem 2rem', background: 'transparent', color: '#fff', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', fontSize: '1rem', cursor: 'pointer', fontWeight: '700' },
-  footer: { background: '#0f172a', borderTop: '1px solid #1e293b', padding: '2rem 6%' },
-  footerTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', paddingBottom: '1.5rem', borderBottom: '1px solid #1e293b', marginBottom: '1.5rem' },
-  footerTagline: { color: '#64748b', fontSize: '0.9rem', margin: 0 },
-  footerBottom: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' },
-  footerText: { color: '#475569', fontSize: '0.85rem', margin: 0 },
-  footerLinks: { display: 'flex', gap: '1.5rem' },
-  footerLink: { color: '#64748b', fontSize: '0.85rem', cursor: 'pointer' },
-};
 
 export default Home;
