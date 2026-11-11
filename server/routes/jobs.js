@@ -17,7 +17,7 @@ const auth = (req, res, next) => {
   }
 };
 
-router.post('/create', auth, validate(createJobSchema), async (req, res) => {
+router.post('/create', auth, validate(createJobSchema), async (req, res, next) => {
   try {
     const { title, description, skill, coordinates } = req.body;
     const job = new Job({
@@ -50,11 +50,11 @@ router.post('/create', auth, validate(createJobSchema), async (req, res) => {
 
     res.json({ message: 'Job posted!', job, nearbyWorkers: nearbyWorkers.length });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 });
 
-router.put('/accept/:id', auth, validate(jobIdSchema, 'params'), async (req, res) => {
+router.put('/accept/:id', auth, validate(jobIdSchema, 'params'), async (req, res, next) => {
   try {
     const job = await Job.findByIdAndUpdate(req.params.id,
       { status: 'accepted', worker: req.user.id },
@@ -62,29 +62,29 @@ router.put('/accept/:id', auth, validate(jobIdSchema, 'params'), async (req, res
     );
     res.json({ message: 'Job accepted!', job });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 });
 
-router.get('/open', auth, async (req, res) => {
+router.get('/open', auth, async (req, res, next) => {
   try {
     const jobs = await Job.find({ status: 'open' }).populate('client', 'name');
     res.json(jobs);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 });
 
-router.get('/myjobs', auth, async (req, res) => {
+router.get('/myjobs', auth, async (req, res, next) => {
   try {
     const jobs = await Job.find({ client: req.user.id }).populate('worker', 'name rating');
     res.json(jobs);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 });
 
-router.put('/complete/:id', auth, validate(jobIdSchema, 'params'), validate(completeJobSchema), async (req, res) => {
+router.put('/complete/:id', auth, validate(jobIdSchema, 'params'), validate(completeJobSchema), async (req, res, next) => {
   try {
     const { rating, review } = req.body;
     const job = await Job.findByIdAndUpdate(req.params.id,
@@ -98,7 +98,7 @@ router.put('/complete/:id', auth, validate(jobIdSchema, 'params'), validate(comp
 
     res.json({ message: 'Job completed and reviewed!', job });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 });
 

@@ -35,16 +35,56 @@ const apiLimiter = rateLimit({
 
 app.use('/api', apiLimiter);
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB connected!'))
-  .catch(err => console.log('DB Error:', err));
+const isProduction = process.env.NODE_ENV === 'production';
+
+const safeLogValue = value => String(value || '')
+  .replace(/mongodb(?:\+srv)?:\/\/[^\s]+/gi, '[REDACTED_MONGO_URI]')
+  .replace(/Bearer\s+[^\s]+/gi, 'Bearer [REDACTED_TOKEN]');
+
+const logError = (err, context = 'Request error') => {
+  console.error(context, {
+    name: err.name,
+    code: err.code,
+    stack: safeLogValue(err.stack)
+  });
+};
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/jobs', require('./routes/jobs'));
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 app.get('/', (req, res) => {
   res.send('BuildHire server is running!');
 });
 
+app.use((req, res, next) => {
+  const error = new Error('Route not found');
+  error.statusCode = 404;
+  next(error);
+});
+
+app.use((err, req, res, next) => {
+  logError(err);
+  const statusCode = err.statusCode || err.status || 500;
+  const safeStatusCode = statusCode >= 400 && statusCode < 600 ? statusCode : 500;
+  const message = safeStatusCode === 404
+    ? 'Route not found'
+    : isProduction ? 'Internal server error' : err.message || 'Internal server error';
+
+  res.status(safeStatusCode).json({ message });
+});
+
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log('MongoDB connected!');
+    server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  })
+  .catch(err => {
+    logError(err, 'MongoDB connection failed');
+    process.exit(1);
+  });
