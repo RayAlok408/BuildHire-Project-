@@ -14,7 +14,7 @@ const authLimiter = rateLimit({
 });
 
 // Register
-router.post('/register', authLimiter, validate(registerSchema), async (req, res) => {
+router.post('/register', authLimiter, validate(registerSchema), async (req, res, next) => {
   try {
     const { name, email, password, role, skill, coordinates } = req.body;
     const existing = await User.findOne({ email });
@@ -31,12 +31,12 @@ router.post('/register', authLimiter, validate(registerSchema), async (req, res)
     await user.save();
     res.json({ message: 'Registered successfully!' });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 });
 
 // Login
-router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
+router.post('/login', authLimiter, validate(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
@@ -52,7 +52,7 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
     );
     res.json({ token, user: { id: user._id, name: user.name, role: user.role } });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 });
 
