@@ -4,6 +4,7 @@ const Job = require('../models/Job');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const socketIO = require('../socket');
+const { createJobSchema, jobIdSchema, completeJobSchema, validate } = require('../validation');
 
 const auth = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
@@ -16,7 +17,7 @@ const auth = (req, res, next) => {
   }
 };
 
-router.post('/create', auth, async (req, res) => {
+router.post('/create', auth, validate(createJobSchema), async (req, res) => {
   try {
     const { title, description, skill, coordinates } = req.body;
     const job = new Job({
@@ -53,7 +54,7 @@ router.post('/create', auth, async (req, res) => {
   }
 });
 
-router.put('/accept/:id', auth, async (req, res) => {
+router.put('/accept/:id', auth, validate(jobIdSchema, 'params'), async (req, res) => {
   try {
     const job = await Job.findByIdAndUpdate(req.params.id,
       { status: 'accepted', worker: req.user.id },
@@ -83,7 +84,7 @@ router.get('/myjobs', auth, async (req, res) => {
   }
 });
 
-router.put('/complete/:id', auth, async (req, res) => {
+router.put('/complete/:id', auth, validate(jobIdSchema, 'params'), validate(completeJobSchema), async (req, res) => {
   try {
     const { rating, review } = req.body;
     const job = await Job.findByIdAndUpdate(req.params.id,
