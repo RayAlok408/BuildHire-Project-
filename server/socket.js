@@ -1,9 +1,9 @@
 let io;
 
 module.exports = {
-  init: (server) => {
+  init: (server, options = {}) => {
     const { Server } = require('socket.io');
-    io = new Server(server, { cors: { origin: '*' } });
+    io = new Server(server, options);
     return io;
   },
   getIO: () => {
