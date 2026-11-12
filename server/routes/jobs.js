@@ -56,10 +56,20 @@ router.post('/create', auth, validate(createJobSchema), async (req, res, next) =
 
 router.put('/accept/:id', auth, validate(jobIdSchema, 'params'), async (req, res, next) => {
   try {
-    const job = await Job.findByIdAndUpdate(req.params.id,
+    if (req.user.role !== 'worker') {
+      return res.status(403).json({ message: 'Only workers can accept jobs' });
+    }
+
+    const job = await Job.findOneAndUpdate(
+      { _id: req.params.id, status: 'open' },
       { status: 'accepted', worker: req.user.id },
       { new: true }
     );
+
+    if (!job) {
+      return res.status(409).json({ message: 'Job is no longer available' });
+    }
+
     res.json({ message: 'Job accepted!', job });
   } catch (err) {
     next(err);
@@ -87,6 +97,20 @@ router.get('/myjobs', auth, async (req, res, next) => {
 router.put('/complete/:id', auth, validate(jobIdSchema, 'params'), validate(completeJobSchema), async (req, res, next) => {
   try {
     const { rating, review } = req.body;
+    const jobForAuthorization = await Job.findById(req.params.id).select('client worker');
+
+    if (!jobForAuthorization) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+
+    const userId = String(req.user.id);
+    const isJobOwner = String(jobForAuthorization.client) === userId;
+    const isAssignedWorker = String(jobForAuthorization.worker) === userId;
+
+    if (!isJobOwner && !isAssignedWorker) {
+      return res.status(403).json({ message: 'You are not authorized to complete this job' });
+    }
+
     const job = await Job.findByIdAndUpdate(req.params.id,
       { status: 'completed', rating, review },
       { new: true }
