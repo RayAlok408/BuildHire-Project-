@@ -6,6 +6,15 @@ const jwt = require('jsonwebtoken');
 const socketIO = require('../socket');
 const { createJobSchema, jobIdSchema, completeJobSchema, validate } = require('../validation');
 
+const getPagination = query => {
+  const parsedPage = Number.parseInt(query.page, 10);
+  const parsedLimit = Number.parseInt(query.limit, 10);
+  const page = Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const limit = Number.isInteger(parsedLimit) && parsedLimit > 0 ? Math.min(parsedLimit, 50) : 20;
+
+  return { page, limit, skip: (page - 1) * limit };
+};
+
 const auth = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ message: 'No token' });
@@ -37,7 +46,7 @@ router.post('/create', auth, validate(createJobSchema), async (req, res, next) =
           $maxDistance: 10000
         }
       }
-    });
+    }).limit(50);
 
     nearbyWorkers.forEach(worker => {
       socketIO.getIO().emit(`job_for_${worker._id}`, {
@@ -78,7 +87,16 @@ router.put('/accept/:id', auth, validate(jobIdSchema, 'params'), async (req, res
 
 router.get('/open', auth, async (req, res, next) => {
   try {
-    const jobs = await Job.find({ status: 'open' }).populate('client', 'name');
+    const { page, limit, skip } = getPagination(req.query);
+    const [jobs, total] = await Promise.all([
+      Job.find({ status: 'open' })
+        .populate('client', 'name')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Job.countDocuments({ status: 'open' })
+    ]);
+    res.set('X-Total-Count', String(total));
     res.json(jobs);
   } catch (err) {
     next(err);
@@ -87,7 +105,17 @@ router.get('/open', auth, async (req, res, next) => {
 
 router.get('/myjobs', auth, async (req, res, next) => {
   try {
-    const jobs = await Job.find({ client: req.user.id }).populate('worker', 'name rating');
+    const { page, limit, skip } = getPagination(req.query);
+    const filter = { client: req.user.id };
+    const [jobs, total] = await Promise.all([
+      Job.find(filter)
+        .populate('worker', 'name rating')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Job.countDocuments(filter)
+    ]);
+    res.set('X-Total-Count', String(total));
     res.json(jobs);
   } catch (err) {
     next(err);

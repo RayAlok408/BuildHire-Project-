@@ -16,5 +16,8 @@ const jobSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 jobSchema.index({ location: '2dsphere' });
+jobSchema.index({ status: 1, createdAt: -1 });
+jobSchema.index({ client: 1, createdAt: -1 });
+jobSchema.index({ worker: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Job', jobSchema);
