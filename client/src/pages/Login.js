@@ -22,7 +22,8 @@ function Login() {
       const res = await axios.post(`${API}/api/auth/login`, form);
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
-      if (res.data.user.role === 'client') navigate('/client');
+      if (res.data.user.role === 'admin') navigate('/admin');
+      else if (res.data.user.role === 'client') navigate('/client');
       else navigate('/worker');
     } catch (err) {
       setMsg(err.response?.data?.message || 'Invalid email or password');
