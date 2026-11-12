@@ -49,7 +49,7 @@ router.post('/create', auth, validate(createJobSchema), async (req, res, next) =
     }).limit(50);
 
     nearbyWorkers.forEach(worker => {
-      socketIO.getIO().emit(`job_for_${worker._id}`, {
+      socketIO.getIO().to(`worker:${worker._id}`).emit('job:new', {
         jobId: job._id,
         title,
         description,
