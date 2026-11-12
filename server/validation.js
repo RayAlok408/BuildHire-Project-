@@ -35,6 +35,11 @@ const jobIdSchema = z.object({
 });
 
 const completeJobSchema = z.object({
+  rating: z.number().int().min(1, 'Rating must be between 1 and 5').max(5, 'Rating must be between 1 and 5').optional(),
+  review: z.string().trim().min(1, 'Review is required').max(1000, 'Review must be 1000 characters or fewer').optional()
+}).optional();
+
+const reviewSchema = z.object({
   rating: z.number().int().min(1, 'Rating must be between 1 and 5').max(5, 'Rating must be between 1 and 5'),
   review: z.string().trim().min(1, 'Review is required').max(1000, 'Review must be 1000 characters or fewer')
 });
@@ -61,6 +66,7 @@ module.exports = {
   createJobSchema,
   jobIdSchema,
   completeJobSchema,
+  reviewSchema,
   startJobSchema,
   cancelJobSchema,
   validate

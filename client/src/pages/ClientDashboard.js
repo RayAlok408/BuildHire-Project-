@@ -15,6 +15,9 @@ function ClientDashboard() {
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('post');
+  const [reviewingJobId, setReviewingJobId] = useState(null);
+  const [reviewForm, setReviewForm] = useState({ rating: '', review: '' });
+  const [reviewMsg, setReviewMsg] = useState('');
   const user = JSON.parse(localStorage.getItem('user'));
 
   const fetchJobs = useCallback(async () => {
@@ -53,8 +56,29 @@ function ClientDashboard() {
   };
 
   const completeJob = async (id) => {
-    await axios.put(`${API}/api/jobs/complete/${id}`, { rating: 5, review: 'Great work!' }, { headers });
+    await axios.put(`${API}/api/jobs/complete/${id}`, {}, { headers });
+    setReviewingJobId(id);
     fetchJobs();
+  };
+
+  const submitReview = async (id) => {
+    if (!reviewForm.rating || !reviewForm.review.trim()) {
+      setReviewMsg('Please select a rating and write a review.');
+      return;
+    }
+
+    try {
+      await axios.post(`${API}/api/jobs/${id}/review`, {
+        rating: Number(reviewForm.rating),
+        review: reviewForm.review
+      }, { headers });
+      setReviewingJobId(null);
+      setReviewForm({ rating: '', review: '' });
+      setReviewMsg('Review submitted successfully.');
+      fetchJobs();
+    } catch (err) {
+      setReviewMsg(err.response?.data?.message || 'Unable to submit review.');
+    }
   };
 
   const cancelJob = async (id) => {
@@ -173,13 +197,47 @@ function ClientDashboard() {
                   </div>
                 )}
                 {(job.status === 'accepted' || job.status === 'in_progress') && (
-                  <button style={styles.completeBtn} onClick={() => completeJob(job._id)}>Mark Complete & Rate Worker</button>
+                  <button style={styles.completeBtn} onClick={() => completeJob(job._id)}>Mark Complete</button>
                 )}
                 {(job.status === 'accepted' || job.status === 'in_progress') && (
                   <button style={styles.cancelBtn} onClick={() => cancelJob(job._id)}>Cancel Job</button>
                 )}
                 {job.status === 'completed' && (
-                  <div style={styles.completedTag}>Job completed successfully!</div>
+                  <div>
+                    <div style={styles.completedTag}>Job completed successfully!</div>
+                    {!job.review && reviewingJobId !== job._id && (
+                      <button style={styles.reviewBtn} onClick={() => { setReviewingJobId(job._id); setReviewMsg(''); }}>
+                        Review Worker
+                      </button>
+                    )}
+                    {!job.review && reviewingJobId === job._id && (
+                      <div style={styles.reviewCard}>
+                        <label style={styles.label}>Rating</label>
+                        <select
+                          style={styles.input}
+                          value={reviewForm.rating}
+                          onChange={event => setReviewForm({ ...reviewForm, rating: event.target.value })}
+                        >
+                          <option value="">Select rating</option>
+                          <option value="5">5 - Excellent</option>
+                          <option value="4">4 - Good</option>
+                          <option value="3">3 - Average</option>
+                          <option value="2">2 - Poor</option>
+                          <option value="1">1 - Very poor</option>
+                        </select>
+                        <label style={styles.label}>Review</label>
+                        <textarea
+                          style={{ ...styles.input, height: '90px', resize: 'vertical' }}
+                          maxLength={1000}
+                          placeholder="Share your experience..."
+                          value={reviewForm.review}
+                          onChange={event => setReviewForm({ ...reviewForm, review: event.target.value })}
+                        />
+                        {reviewMsg && <div style={styles.errorMsg}>{reviewMsg}</div>}
+                        <button style={styles.reviewBtn} onClick={() => submitReview(job._id)}>Submit Review</button>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             ))}
@@ -232,6 +290,8 @@ const styles = {
   workerRating: { margin: '0.2rem 0 0', fontSize: '0.8rem', color: '#f59e0b' },
   completeBtn: { width: '100%', padding: '0.8rem', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontSize: '0.95rem' },
   cancelBtn: { width: '100%', padding: '0.8rem', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontSize: '0.95rem', marginTop: '0.6rem' },
+  reviewBtn: { width: '100%', padding: '0.8rem', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontSize: '0.95rem', marginTop: '0.6rem' },
+  reviewCard: { background: '#f8faff', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '1rem', marginTop: '0.8rem' },
   completedTag: { background: '#dcfce7', color: '#16a34a', padding: '0.6rem', borderRadius: '8px', textAlign: 'center', fontSize: '0.9rem', fontWeight: '600' }
 };
 
