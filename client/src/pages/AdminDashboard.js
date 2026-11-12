@@ -3,8 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const API = 'https://buildhire-server.onrender.com';
-const token = localStorage.getItem('token');
-const headers = { Authorization: `Bearer ${token}` };
+const getHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -23,7 +22,7 @@ function AdminDashboard() {
 
   const loadUsers = async () => {
     try {
-      const response = await axios.get(`${API}/api/admin/users?page=1&limit=50`, { headers });
+      const response = await axios.get(`${API}/api/admin/users?page=1&limit=50`, { headers: getHeaders() });
       setUsers(response.data);
     } catch (error) {
       setMessage(error.response?.data?.message || 'Unable to load users');
@@ -32,7 +31,7 @@ function AdminDashboard() {
 
   const loadJobs = async () => {
     try {
-      const response = await axios.get(`${API}/api/admin/jobs?page=1&limit=50`, { headers });
+      const response = await axios.get(`${API}/api/admin/jobs?page=1&limit=50`, { headers: getHeaders() });
       setJobs(response.data);
     } catch (error) {
       setMessage(error.response?.data?.message || 'Unable to load jobs');
@@ -51,7 +50,7 @@ function AdminDashboard() {
       const endpoint = body.blocked === undefined
         ? `/api/admin/workers/${id}/approval`
         : `/api/admin/users/${id}/block`;
-      await axios.patch(`${API}${endpoint}`, body, { headers });
+      await axios.patch(`${API}${endpoint}`, body, { headers: getHeaders() });
       setMessage(successMessage);
       await loadUsers();
     } catch (error) {
