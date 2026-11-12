@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 
 const API = 'https://buildhire-server.onrender.com';
+const token = localStorage.getItem('token');
+const socket = io(API, { auth: { token } });
+const headers = { Authorization: `Bearer ${token}` };
 
 function ClientDashboard() {
   const navigate = useNavigate();
@@ -11,9 +15,7 @@ function ClientDashboard() {
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('post');
-  const token = localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user'));
-  const headers = { Authorization: `Bearer ${token}` };
 
   const fetchJobs = useCallback(async () => {
     try {
@@ -22,7 +24,13 @@ function ClientDashboard() {
     } catch (err) { console.log(err); }
   }, []);
 
-  useEffect(() => { fetchJobs(); }, [fetchJobs]);
+  useEffect(() => {
+    fetchJobs();
+    const bookingEvents = ['booking:accepted', 'booking:started', 'booking:cancelled'];
+    bookingEvents.forEach(event => socket.on(event, fetchJobs));
+
+    return () => bookingEvents.forEach(event => socket.off(event, fetchJobs));
+  }, [fetchJobs]);
 
   const handle = e => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -49,13 +57,18 @@ function ClientDashboard() {
     fetchJobs();
   };
 
+  const cancelJob = async (id) => {
+    await axios.put(`${API}/api/jobs/cancel/${id}`, { reason: 'Cancelled by client' }, { headers });
+    fetchJobs();
+  };
+
   const logout = () => {
     localStorage.clear();
     navigate('/login');
   };
 
-  const statusColor = (s) => s === 'open' ? '#f59e0b' : s === 'accepted' ? '#2563eb' : '#16a34a';
-  const statusBg = (s) => s === 'open' ? '#fef3c7' : s === 'accepted' ? '#dbeafe' : '#dcfce7';
+  const statusColor = (s) => s === 'open' ? '#f59e0b' : s === 'accepted' ? '#2563eb' : s === 'in_progress' ? '#7c3aed' : s === 'cancelled' ? '#dc2626' : '#16a34a';
+  const statusBg = (s) => s === 'open' ? '#fef3c7' : s === 'accepted' ? '#dbeafe' : s === 'in_progress' ? '#ede9fe' : s === 'cancelled' ? '#fee2e2' : '#dcfce7';
 
   return (
     <div style={styles.page}>
@@ -159,8 +172,11 @@ function ClientDashboard() {
                     </div>
                   </div>
                 )}
-                {job.status === 'accepted' && (
+                {(job.status === 'accepted' || job.status === 'in_progress') && (
                   <button style={styles.completeBtn} onClick={() => completeJob(job._id)}>Mark Complete & Rate Worker</button>
+                )}
+                {(job.status === 'accepted' || job.status === 'in_progress') && (
+                  <button style={styles.cancelBtn} onClick={() => cancelJob(job._id)}>Cancel Job</button>
                 )}
                 {job.status === 'completed' && (
                   <div style={styles.completedTag}>Job completed successfully!</div>
@@ -215,6 +231,7 @@ const styles = {
   workerName: { margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#1e293b' },
   workerRating: { margin: '0.2rem 0 0', fontSize: '0.8rem', color: '#f59e0b' },
   completeBtn: { width: '100%', padding: '0.8rem', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontSize: '0.95rem' },
+  cancelBtn: { width: '100%', padding: '0.8rem', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontSize: '0.95rem', marginTop: '0.6rem' },
   completedTag: { background: '#dcfce7', color: '#16a34a', padding: '0.6rem', borderRadius: '8px', textAlign: 'center', fontSize: '0.9rem', fontWeight: '600' }
 };
 

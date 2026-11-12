@@ -21,8 +21,8 @@ module.exports = {
     });
 
     io.on('connection', socket => {
-      if (socket.user.role === 'worker') {
-        socket.join(`worker:${socket.user.id}`);
+      if (socket.user.role === 'client' || socket.user.role === 'worker') {
+        socket.join(`${socket.user.role}:${socket.user.id}`);
       }
     });
 

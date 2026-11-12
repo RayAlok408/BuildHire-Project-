@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 const API = 'https://buildhire-server.onrender.com';
 const token = localStorage.getItem('token');
 const socket = io(API, { auth: { token } });
+const headers = { Authorization: `Bearer ${token}` };
 
 function WorkerDashboard() {
   const navigate = useNavigate();
@@ -14,7 +15,6 @@ function WorkerDashboard() {
   const [msg, setMsg] = useState('');
   const [available, setAvailable] = useState(true);
   const user = JSON.parse(localStorage.getItem('user'));
-  const headers = { Authorization: `Bearer ${token}` };
 
   const fetchJobs = useCallback(async () => {
     try {
@@ -25,18 +25,50 @@ function WorkerDashboard() {
 
   useEffect(() => {
     fetchJobs();
-    socket.on('job:new', (newJob) => {
+    const handleNewJob = newJob => {
       setMsg(`New job nearby: ${newJob.title}`);
       fetchJobs();
       setTimeout(() => setMsg(''), 5000);
-    });
-    return () => socket.off('job:new');
+    };
+    const handleBookingCancelled = () => {
+      setAcceptedJob(null);
+      setMsg('Booking cancelled by the client');
+      fetchJobs();
+    };
+    const handleBookingCompleted = () => {
+      setAcceptedJob(null);
+      setMsg('Booking completed');
+      fetchJobs();
+    };
+
+    socket.on('job:new', handleNewJob);
+    socket.on('booking:cancelled', handleBookingCancelled);
+    socket.on('booking:completed', handleBookingCompleted);
+
+    return () => {
+      socket.off('job:new', handleNewJob);
+      socket.off('booking:cancelled', handleBookingCancelled);
+      socket.off('booking:completed', handleBookingCompleted);
+    };
   }, [fetchJobs, user?.id]);
 
   const acceptJob = async (job) => {
-    await axios.put(`${API}/api/jobs/accept/${job._id}`, {}, { headers });
-    setAcceptedJob(job);
+    const res = await axios.put(`${API}/api/jobs/accept/${job._id}`, {}, { headers });
+    setAcceptedJob(res.data.job);
     setMsg('');
+    fetchJobs();
+  };
+
+  const startJob = async () => {
+    const res = await axios.put(`${API}/api/jobs/start/${acceptedJob._id}`, {}, { headers });
+    setAcceptedJob(res.data.job);
+    setMsg('Job started');
+  };
+
+  const cancelJob = async () => {
+    await axios.put(`${API}/api/jobs/cancel/${acceptedJob._id}`, { reason: 'Cancelled by worker' }, { headers });
+    setAcceptedJob(null);
+    setMsg('Booking cancelled');
     fetchJobs();
   };
 
@@ -56,12 +88,14 @@ function WorkerDashboard() {
         <nav style={styles.nav}>
           <span style={styles.logo}>BuildHire</span>
           <div style={styles.navRight}>
-            <span style={styles.inProgressBadge}>Job In Progress</span>
+            <span style={styles.inProgressBadge}>{acceptedJob.status === 'in_progress' ? 'Job In Progress' : 'Job Accepted'}</span>
             <button style={styles.logoutBtn} onClick={logout}>Logout</button>
           </div>
         </nav>
         <div style={styles.container}>
-          <div style={styles.successBanner}>Job Accepted — Head to client location now</div>
+          <div style={styles.successBanner}>
+            {acceptedJob.status === 'in_progress' ? 'Job In Progress — Service is underway' : 'Job Accepted — Head to client location now'}
+          </div>
           <div style={styles.detailsGrid}>
             <div style={styles.detailBox}>
               <p style={styles.detailLabel}>Job Title</p>
@@ -89,6 +123,10 @@ function WorkerDashboard() {
             <iframe title="map" width="100%" height="260" style={{ border: 0, borderRadius: '12px', display: 'block' }} src="https://maps.google.com/maps?q=30.9010,75.8573&z=14&output=embed" />
           </div>
           <button style={styles.mapBtn} onClick={() => openMap(acceptedJob)}>Get Directions in Google Maps</button>
+          {acceptedJob.status === 'accepted' && (
+            <button style={styles.startBtn} onClick={startJob}>Start Job</button>
+          )}
+          <button style={styles.cancelBtn} onClick={cancelJob}>Cancel Job</button>
           <button style={styles.backBtn} onClick={() => setAcceptedJob(null)}>Back to Dashboard</button>
         </div>
       </div>
@@ -203,6 +241,8 @@ const styles = {
   mapWrap: { background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' },
   mapLabel: { fontSize: '0.75rem', color: '#94a3b8', margin: '0 0 0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' },
   mapBtn: { width: '100%', padding: '0.9rem', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: '700', marginBottom: '0.8rem' },
+  startBtn: { width: '100%', padding: '0.9rem', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: '700', marginBottom: '0.8rem' },
+  cancelBtn: { width: '100%', padding: '0.9rem', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: '700', marginBottom: '0.8rem' },
   backBtn: { width: '100%', padding: '0.9rem', background: '#fff', color: '#64748b', border: '1px solid #e5e7eb', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer' }
 };
 
