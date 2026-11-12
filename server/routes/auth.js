@@ -40,10 +40,10 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res, next)
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'User not found' });
+    if (!user) return res.status(400).json({ message: 'Invalid email or password' });
 
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(400).json({ message: 'Wrong password' });
+    if (!match) return res.status(400).json({ message: 'Invalid email or password' });
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
