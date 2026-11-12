@@ -51,6 +51,7 @@ const logError = (err, context = 'Request error') => {
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/jobs', require('./routes/jobs'));
+app.use('/api/admin', require('./routes/admin'));
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });

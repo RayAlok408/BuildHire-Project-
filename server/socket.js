@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const User = require('./models/User');
 
 let io;
 
@@ -7,12 +8,14 @@ module.exports = {
     const { Server } = require('socket.io');
     io = new Server(server, options);
 
-    io.use((socket, next) => {
+    io.use(async (socket, next) => {
       const token = socket.handshake.auth?.token;
       if (!token) return next(new Error('Socket authentication required'));
 
       try {
         const user = jwt.verify(token, process.env.JWT_SECRET);
+        const account = await User.findById(user.id).select('blocked');
+        if (!account || account.blocked) return next(new Error('Socket access denied'));
         socket.user = { id: String(user.id), role: user.role };
         next();
       } catch {

@@ -50,6 +50,17 @@ const cancelJobSchema = z.object({
   reason: z.string().trim().max(500, 'Cancellation reason must be 500 characters or fewer').optional()
 });
 
+const adminUserIdSchema = z.object({
+  id: z.string().regex(/^[a-f\d]{24}$/i, 'Invalid user ID')
+});
+
+const adminStatusSchema = z.object({
+  blocked: z.boolean().optional(),
+  approved: z.boolean().optional()
+}).refine(data => data.blocked !== undefined || data.approved !== undefined, {
+  message: 'An admin status value is required'
+});
+
 const validate = (schema, source = 'body') => (req, res, next) => {
   const result = schema.safeParse(req[source]);
   if (!result.success) {
@@ -69,5 +80,7 @@ module.exports = {
   reviewSchema,
   startJobSchema,
   cancelJobSchema,
+  adminUserIdSchema,
+  adminStatusSchema,
   validate
 };
