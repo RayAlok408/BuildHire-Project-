@@ -4,7 +4,8 @@ import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 
 const API = 'https://buildhire-server.onrender.com';
-const socket = io(API);
+const token = localStorage.getItem('token');
+const socket = io(API, { auth: { token } });
 
 function WorkerDashboard() {
   const navigate = useNavigate();
@@ -12,7 +13,6 @@ function WorkerDashboard() {
   const [acceptedJob, setAcceptedJob] = useState(null);
   const [msg, setMsg] = useState('');
   const [available, setAvailable] = useState(true);
-  const token = localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user'));
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -25,12 +25,12 @@ function WorkerDashboard() {
 
   useEffect(() => {
     fetchJobs();
-    socket.on(`job_for_${user?.id}`, (newJob) => {
+    socket.on('job:new', (newJob) => {
       setMsg(`New job nearby: ${newJob.title}`);
       fetchJobs();
       setTimeout(() => setMsg(''), 5000);
     });
-    return () => socket.off(`job_for_${user?.id}`);
+    return () => socket.off('job:new');
   }, [fetchJobs, user?.id]);
 
   const acceptJob = async (job) => {
