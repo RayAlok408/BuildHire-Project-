@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Job = require('../models/Job');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
@@ -8,6 +9,7 @@ const {
   createJobSchema,
   jobIdSchema,
   completeJobSchema,
+  reviewSchema,
   startJobSchema,
   cancelJobSchema,
   validate
@@ -208,7 +210,6 @@ router.get('/myjobs', auth, async (req, res, next) => {
 
 router.put('/complete/:id', auth, validate(jobIdSchema, 'params'), validate(completeJobSchema), async (req, res, next) => {
   try {
-    const { rating, review } = req.body;
     const jobForAuthorization = await Job.findById(req.params.id).select('client worker status');
 
     if (!jobForAuthorization) {
@@ -225,7 +226,7 @@ router.put('/complete/:id', auth, validate(jobIdSchema, 'params'), validate(comp
 
     const job = await Job.findOneAndUpdate(
       { _id: req.params.id, status: { $in: ['accepted', 'in_progress'] } },
-      { status: 'completed', rating, review },
+      { status: 'completed' },
       { new: true }
     );
 
@@ -233,19 +234,87 @@ router.put('/complete/:id', auth, validate(jobIdSchema, 'params'), validate(comp
       return res.status(409).json({ message: 'Job is not available to complete' });
     }
 
-    const worker = await User.findById(job.worker);
-    const newTotal = worker.totalReviews + 1;
-    const newRating = ((worker.rating * worker.totalReviews) + rating) / newTotal;
-    await User.findByIdAndUpdate(job.worker, { rating: newRating, totalReviews: newTotal });
-
     socketIO.getIO().to(`worker:${job.worker}`).emit('booking:completed', {
       jobId: job._id,
       status: job.status
     });
 
-    res.json({ message: 'Job completed and reviewed!', job });
+    res.json({ message: 'Job completed!', job });
   } catch (err) {
     next(err);
+  }
+});
+
+router.post('/:id/review', auth, validate(jobIdSchema, 'params'), validate(reviewSchema), async (req, res, next) => {
+  let session;
+
+  try {
+    const { rating, review } = req.body;
+    const job = await Job.findById(req.params.id).select('client worker status review');
+
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+
+    if (String(job.client) !== String(req.user.id)) {
+      return res.status(403).json({ message: 'Only the job client can leave a review' });
+    }
+
+    if (job.status !== 'completed') {
+      return res.status(409).json({ message: 'Only completed jobs can be reviewed' });
+    }
+
+    if (job.review !== undefined && job.review !== null) {
+      return res.status(409).json({ message: 'This job has already been reviewed' });
+    }
+
+    session = await mongoose.startSession();
+    session.startTransaction();
+
+    const reviewedJob = await Job.findOneAndUpdate(
+      { _id: req.params.id, client: req.user.id, status: 'completed', review: { $exists: false } },
+      { rating, review },
+      { new: true, session }
+    );
+
+    if (!reviewedJob) {
+      await session.abortTransaction();
+      return res.status(409).json({ message: 'This job has already been reviewed or is not reviewable' });
+    }
+
+    const worker = await User.findById(job.worker).select('_id').session(session);
+    if (!worker) {
+      await session.abortTransaction();
+      return res.status(409).json({ message: 'Assigned worker not found' });
+    }
+
+    await User.findByIdAndUpdate(
+      job.worker,
+      [{
+        $set: {
+          rating: {
+            $divide: [
+              { $add: [{ $multiply: ['$rating', '$totalReviews'] }, rating] },
+              { $add: ['$totalReviews', 1] }
+            ]
+          },
+          totalReviews: { $add: ['$totalReviews', 1] }
+        }
+      }],
+      { session }
+    );
+
+    await session.commitTransaction();
+    res.json({ message: 'Review submitted successfully', job: reviewedJob });
+  } catch (err) {
+    if (session?.inTransaction()) {
+      await session.abortTransaction();
+    }
+    next(err);
+  } finally {
+    if (session) {
+      await session.endSession();
+    }
   }
 });
 
