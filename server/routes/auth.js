@@ -44,6 +44,7 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res, next)
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({ message: 'Invalid email or password' });
+    if (user.blocked) return res.status(403).json({ message: 'Your account is blocked' });
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
