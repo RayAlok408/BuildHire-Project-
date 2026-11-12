@@ -16,5 +16,7 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 userSchema.index({ location: '2dsphere' });
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ role: 1, skill: 1, available: 1, location: '2dsphere' });
 
 module.exports = mongoose.model('User', userSchema);
