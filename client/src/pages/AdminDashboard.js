@@ -22,7 +22,7 @@ function AdminDashboard() {
 
   const loadUsers = async () => {
     try {
-      const response = await axios.get(`${API}/api/admin/users?page=1&limit=50`, { headers: getHeaders() });S
+      const response = await axios.get(`${API}/api/admin/users?page=1&limit=50`, { headers: getHeaders() });
       setUsers(response.data);
     } catch (error) {
       setMessage(error.response?.data?.message || 'Unable to load users');
