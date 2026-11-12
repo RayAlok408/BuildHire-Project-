@@ -4,9 +4,12 @@ const jobSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   skill: { type: String, required: true },
-  status: { type: String, enum: ['open', 'accepted', 'completed'], default: 'open' },
+  status: { type: String, enum: ['open', 'accepted', 'in_progress', 'completed', 'cancelled'], default: 'open' },
   client: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   worker: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  cancelledAt: { type: Date },
+  cancellationReason: { type: String },
   location: {
     type: { type: String, default: 'Point' },
     coordinates: { type: [Number], default: [0, 0] }

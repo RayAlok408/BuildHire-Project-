@@ -4,7 +4,14 @@ const Job = require('../models/Job');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const socketIO = require('../socket');
-const { createJobSchema, jobIdSchema, completeJobSchema, validate } = require('../validation');
+const {
+  createJobSchema,
+  jobIdSchema,
+  completeJobSchema,
+  startJobSchema,
+  cancelJobSchema,
+  validate
+} = require('../validation');
 
 const getPagination = query => {
   const parsedPage = Number.parseInt(query.page, 10);
@@ -79,7 +86,84 @@ router.put('/accept/:id', auth, validate(jobIdSchema, 'params'), async (req, res
       return res.status(409).json({ message: 'Job is no longer available' });
     }
 
+    socketIO.getIO().to(`client:${job.client}`).emit('booking:accepted', {
+      jobId: job._id,
+      status: job.status
+    });
+
     res.json({ message: 'Job accepted!', job });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.put('/start/:id', auth, validate(jobIdSchema, 'params'), validate(startJobSchema), async (req, res, next) => {
+  try {
+    if (req.user.role !== 'worker') {
+      return res.status(403).json({ message: 'Only workers can start jobs' });
+    }
+
+    const job = await Job.findOneAndUpdate(
+      { _id: req.params.id, status: 'accepted', worker: req.user.id },
+      { status: 'in_progress' },
+      { new: true }
+    );
+
+    if (!job) {
+      return res.status(409).json({ message: 'Job is not available to start' });
+    }
+
+    socketIO.getIO().to(`client:${job.client}`).emit('booking:started', {
+      jobId: job._id,
+      status: job.status
+    });
+
+    res.json({ message: 'Job started!', job });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.put('/cancel/:id', auth, validate(jobIdSchema, 'params'), validate(cancelJobSchema), async (req, res, next) => {
+  try {
+    const jobForAuthorization = await Job.findById(req.params.id).select('client worker status');
+
+    if (!jobForAuthorization) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+
+    const userId = String(req.user.id);
+    const isJobOwner = String(jobForAuthorization.client) === userId;
+    const isAssignedWorker = String(jobForAuthorization.worker) === userId;
+
+    if (!isJobOwner && !isAssignedWorker) {
+      return res.status(403).json({ message: 'You are not authorized to cancel this job' });
+    }
+
+    const { reason } = req.body;
+    const job = await Job.findOneAndUpdate(
+      { _id: req.params.id, status: { $in: ['accepted', 'in_progress'] } },
+      {
+        status: 'cancelled',
+        cancelledBy: req.user.id,
+        cancelledAt: new Date(),
+        cancellationReason: reason
+      },
+      { new: true }
+    );
+
+    if (!job) {
+      return res.status(409).json({ message: 'Job is not available to cancel' });
+    }
+
+    const recipientRole = isJobOwner ? 'worker' : 'client';
+    const recipientId = isJobOwner ? job.worker : job.client;
+    socketIO.getIO().to(`${recipientRole}:${recipientId}`).emit('booking:cancelled', {
+      jobId: job._id,
+      status: job.status
+    });
+
+    res.json({ message: 'Job cancelled!', job });
   } catch (err) {
     next(err);
   }
@@ -125,7 +209,7 @@ router.get('/myjobs', auth, async (req, res, next) => {
 router.put('/complete/:id', auth, validate(jobIdSchema, 'params'), validate(completeJobSchema), async (req, res, next) => {
   try {
     const { rating, review } = req.body;
-    const jobForAuthorization = await Job.findById(req.params.id).select('client worker');
+    const jobForAuthorization = await Job.findById(req.params.id).select('client worker status');
 
     if (!jobForAuthorization) {
       return res.status(404).json({ message: 'Job not found' });
@@ -139,14 +223,25 @@ router.put('/complete/:id', auth, validate(jobIdSchema, 'params'), validate(comp
       return res.status(403).json({ message: 'You are not authorized to complete this job' });
     }
 
-    const job = await Job.findByIdAndUpdate(req.params.id,
+    const job = await Job.findOneAndUpdate(
+      { _id: req.params.id, status: { $in: ['accepted', 'in_progress'] } },
       { status: 'completed', rating, review },
       { new: true }
     );
+
+    if (!job) {
+      return res.status(409).json({ message: 'Job is not available to complete' });
+    }
+
     const worker = await User.findById(job.worker);
     const newTotal = worker.totalReviews + 1;
     const newRating = ((worker.rating * worker.totalReviews) + rating) / newTotal;
     await User.findByIdAndUpdate(job.worker, { rating: newRating, totalReviews: newTotal });
+
+    socketIO.getIO().to(`worker:${job.worker}`).emit('booking:completed', {
+      jobId: job._id,
+      status: job.status
+    });
 
     res.json({ message: 'Job completed and reviewed!', job });
   } catch (err) {

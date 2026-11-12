@@ -39,6 +39,12 @@ const completeJobSchema = z.object({
   review: z.string().trim().min(1, 'Review is required').max(1000, 'Review must be 1000 characters or fewer')
 });
 
+const startJobSchema = z.object({});
+
+const cancelJobSchema = z.object({
+  reason: z.string().trim().max(500, 'Cancellation reason must be 500 characters or fewer').optional()
+});
+
 const validate = (schema, source = 'body') => (req, res, next) => {
   const result = schema.safeParse(req[source]);
   if (!result.success) {
@@ -55,5 +61,7 @@ module.exports = {
   createJobSchema,
   jobIdSchema,
   completeJobSchema,
+  startJobSchema,
+  cancelJobSchema,
   validate
 };
