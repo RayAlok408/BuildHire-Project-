@@ -110,7 +110,7 @@ function ClientDashboard() {
 
   return (
     <div className="bh-dash">
-      <TopNav label="Account">
+      <TopNav compact label="Account">
         <Avatar name={user?.name} size="sm" />
         <span className="bh-nav__name">{user?.name}</span>
         <Button variant="ghost" size="sm" icon="log-out" onClick={logout}>Logout</Button>

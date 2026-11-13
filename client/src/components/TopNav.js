@@ -3,10 +3,11 @@ import Logo from './Logo';
 import cx from './cx';
 
 // Frosted top bar. fixed: pinned over the page (landing). Default is sticky (dashboards).
+// compact: on phones the wordmark collapses to the BH mark (keeps busy dashboard navs on one line).
 // leading: node shown next to the logo. children: the right-hand actions.
-function TopNav({ fixed = false, leading, children, className = '', label = 'Main' }) {
+function TopNav({ fixed = false, compact = false, leading, children, className = '', label = 'Main' }) {
   return (
-    <header className={cx('bh-nav', fixed && 'bh-nav--fixed', className)}>
+    <header className={cx('bh-nav', fixed && 'bh-nav--fixed', compact && 'bh-nav--compact', className)}>
       <div className="bh-nav__lead">
         <Logo />
         {leading}
