@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Alert, Button, Card, Field, Icon, Logo, Segmented, SkipLink, stagger } from '../components';
+import { Alert, Button, Card, Field, Icon, Logo, Segmented, SkipLink, ThemeToggle, stagger } from '../components';
 import { useDocumentTitle } from '../hooks';
 import './Auth.css';
 
@@ -43,6 +43,7 @@ function Register() {
   return (
     <div className="bh-auth">
       <SkipLink />
+      <ThemeToggle className="bh-auth__theme" />
       <aside className="bh-auth__brand bh-on-ink">
         <Logo tone="dark" />
         <div>

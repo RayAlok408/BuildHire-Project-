@@ -1,6 +1,7 @@
 import React from 'react';
 import Logo from './Logo';
 import SkipLink from './SkipLink';
+import ThemeToggle from './ThemeToggle';
 import cx from './cx';
 
 // Frosted top bar. fixed: pinned over the page (landing). Default is sticky (dashboards).
@@ -14,7 +15,10 @@ function TopNav({ fixed = false, compact = false, leading, children, className =
         <Logo />
         {leading}
       </div>
-      <nav className="bh-nav__actions" aria-label={label}>{children}</nav>
+      <nav className="bh-nav__actions" aria-label={label}>
+        <ThemeToggle />
+        {children}
+      </nav>
     </header>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Alert, Button, Card, Field, Icon, Logo, SkipLink, StatBar, stagger } from '../components';
+import { Alert, Button, Card, Field, Icon, Logo, SkipLink, StatBar, ThemeToggle, stagger } from '../components';
 import { clearSession } from '../session';
 import { useDocumentTitle } from '../hooks';
 import './Auth.css';
@@ -50,6 +50,7 @@ function Login() {
   return (
     <div className="bh-auth">
       <SkipLink />
+      <ThemeToggle className="bh-auth__theme" />
       <aside className="bh-auth__brand bh-on-ink">
         <Logo tone="dark" />
         <div>

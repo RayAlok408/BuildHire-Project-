@@ -1,6 +1,6 @@
 /* Shared layout for the Client, Worker and Admin dashboards. */
 
-.bh-dash { min-height: 100vh; background: var(--cream); }
+.bh-dash { min-height: 100vh; background: var(--bg); }
 .bh-dash__main { max-width: 720px; margin: 0 auto; padding: var(--space-32) var(--space-16) var(--space-64); }
 .bh-dash__main--wide { max-width: 1000px; }
 @media (min-width: 640px) {
@@ -46,7 +46,7 @@
 .bh-worker {
   display: flex; align-items: center; gap: var(--space-12);
   padding: var(--space-12) var(--space-16);
-  background: var(--cream); border-radius: var(--radius-input);
+  background: var(--inset); border-radius: var(--radius-input);
 }
 .bh-worker__name { font-size: 0.9rem; font-weight: 500; }
 .bh-worker__rating { display: inline-flex; align-items: center; gap: var(--space-4); margin-top: 2px; font-size: 0.8rem; color: var(--muted-text); }
@@ -79,7 +79,7 @@
 .bh-avail { display: inline-flex; align-items: center; gap: var(--space-8); }
 .bh-avail__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
 .bh-avail.is-on .bh-avail__dot { background: var(--success); }
-.bh-avail__label { font-size: 0.85rem; font-weight: 500; color: var(--ink); }
+.bh-avail__label { font-size: 0.85rem; font-weight: 500; color: var(--text); }
 @media (max-width: 480px) {
   .bh-avail__label { display: none; }
 }
@@ -106,6 +106,8 @@
 .bh-detail__value { font-size: 1rem; font-weight: 500; overflow-wrap: anywhere; }
 .bh-block { margin-bottom: var(--space-16); }
 .bh-map { display: block; width: 100%; border: 0; border-radius: var(--radius-input); }
+/* the embedded map can't be themed, so it is inverted into a night map */
+:root[data-theme='dark'] .bh-map { filter: invert(0.92) hue-rotate(180deg) contrast(0.92) saturate(0.85); }
 
 .bh-actions { display: flex; flex-wrap: wrap; gap: var(--space-12); }
 .bh-actions .bh-btn { flex: 1 1 220px; }

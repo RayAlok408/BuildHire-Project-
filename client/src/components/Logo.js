@@ -9,7 +9,7 @@ function Logo({ tone = 'light', size = 'md', plain = false, className = '' }) {
   const classes = cx('bh-logo', `bh-logo--${tone}`, `bh-logo--${size}`, !plain && 'bh-logo--link', className);
   const inner = (
     <>
-      <span className="bh-logo__mark" aria-hidden="true">BH</span>
+      <span className="bh-logo__mark">BH</span>
       <span className="bh-logo__text">BuildHire</span>
     </>
   );
@@ -23,8 +23,9 @@ function Logo({ tone = 'light', size = 'md', plain = false, className = '' }) {
   };
 
   return (
-    <Link to="/" className={classes} onClick={onClick} aria-label="BuildHire home">
+    <Link to="/" className={classes} onClick={onClick}>
       {inner}
+      <span className="bh-sr-only"> home</span>
     </Link>
   );
 }

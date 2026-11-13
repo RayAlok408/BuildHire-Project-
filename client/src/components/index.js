@@ -18,6 +18,7 @@ export { default as Segmented } from './Segmented';
 export { default as Switch } from './Switch';
 export { default as StatBar } from './StatBar';
 export { default as SkipLink } from './SkipLink';
+export { default as ThemeToggle } from './ThemeToggle';
 export { default as ConfirmDialog, useConfirm } from './ConfirmDialog';
 export { default as RequireAuth } from './RequireAuth';
 export { default as ScrollToTop } from './ScrollToTop';
