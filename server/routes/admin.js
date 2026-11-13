@@ -21,13 +21,17 @@ const adminAuth = async (req, res, next) => {
 
   try {
     req.user = jwt.verify(token, process.env.JWT_SECRET);
-    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Admin access required' });
 
-    const account = await User.findById(req.user.id).select('blocked');
+    // Role aur blocked status har request par database se check hote hain
+    const account = await User.findById(req.user.id).select('blocked role');
     if (!account || account.blocked) return res.status(401).json({ message: 'Account access denied' });
+    if (account.role !== 'admin') return res.status(403).json({ message: 'Admin access required' });
 
     next();
   } catch (err) {
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
     next(err);
   }
 };
