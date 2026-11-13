@@ -296,3 +296,10 @@
   .bh-btn:hover, .bh-card--hover:hover { transform: none !important; box-shadow: none !important; }
   .bh-reveal:not(.bh-reveal--group), .bh-reveal--group > .bh-stagger { opacity: 1 !important; }
 }
+
+/* ---------- Eyebrow label (Syne, uppercase) ---------- */
+.bh-eyebrow {
+  margin-bottom: var(--space-12);
+  font-family: var(--font-display); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted-text);
+}

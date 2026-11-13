@@ -49,11 +49,7 @@
 .bh-section { padding: var(--space-96) 6%; }
 .bh-section--white { background: var(--white); }
 .bh-section--ink { background: var(--ink); }
-.bh-eyebrow {
-  margin-bottom: var(--space-12);
-  font-family: var(--font-display); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--muted-text);
-}
+
 .bh-section__title { margin-bottom: var(--space-64); font-size: clamp(2rem, 4vw, 3rem); color: var(--ink); }
 .bh-section--ink .bh-eyebrow { color: var(--muted-soft); }
 .bh-section--ink .bh-section__title { color: var(--white); }
