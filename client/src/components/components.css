@@ -177,6 +177,10 @@
 }
 .bh-seg__btn:hover { color: var(--ink); }
 .bh-seg__btn.is-active { background: var(--ink); color: var(--yellow); }
+@media (max-width: 480px) {
+  .bh-seg__btn { padding: var(--space-8) var(--space-12); font-size: 0.9rem; white-space: nowrap; }
+  .bh-seg__btn .bh-icon { display: none; }
+}
 .bh-seg__badge {
   min-width: 22px; padding: 0 var(--space-8); border-radius: var(--radius-pill);
   background: var(--yellow); color: var(--ink);
