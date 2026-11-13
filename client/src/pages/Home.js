@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Card, Icon, Logo, Reveal, StatBar, TopNav, stagger } from '../components';
+import { clearSession, getUser, homePathFor, isSignedIn } from '../session';
+import { useDocumentTitle } from '../hooks';
 import './Home.css';
 
 const MARQUEE_ITEMS = [
@@ -54,15 +56,32 @@ function SectionHead({ eyebrow, title }) {
 
 function Home() {
   const navigate = useNavigate();
+  useDocumentTitle();
+  // Signed-in visitors get a way back to their dashboard instead of Login / Get Started.
+  const [member, setMember] = useState(() => (isSignedIn() ? getUser() : null));
+  const dashboard = member ? homePathFor(member.role) : null;
+  const logout = () => {
+    clearSession();
+    setMember(null);
+  };
 
   return (
     <div className="bh-page">
       <TopNav fixed>
-        <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>Login</Button>
-        <Button size="sm" onClick={() => navigate('/register')}>Get Started</Button>
+        {member ? (
+          <>
+            <Button variant="ghost" size="sm" icon="log-out" onClick={logout}>Logout</Button>
+            <Button size="sm" onClick={() => navigate(dashboard)}>Dashboard</Button>
+          </>
+        ) : (
+          <>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>Login</Button>
+            <Button size="sm" onClick={() => navigate('/register')}>Get Started</Button>
+          </>
+        )}
       </TopNav>
 
-      <main>
+      <main id="main" tabIndex={-1}>
         <section className="bh-hero bh-backdrop">
           <div className="bh-live-pill bh-rise" style={stagger(0)}>
             <span className="bh-live-dot" />
@@ -154,8 +173,17 @@ function Home() {
         <div className="bh-footer__right">
           <div>© 2026 BuildHire. All rights reserved.</div>
           <div className="bh-footer__links">
-            <button type="button" className="bh-footer__link" onClick={() => navigate('/register')}>Sign Up</button>
-            <button type="button" className="bh-footer__link" onClick={() => navigate('/login')}>Login</button>
+            {member ? (
+              <>
+                <button type="button" className="bh-footer__link" onClick={() => navigate(dashboard)}>Dashboard</button>
+                <button type="button" className="bh-footer__link" onClick={logout}>Logout</button>
+              </>
+            ) : (
+              <>
+                <button type="button" className="bh-footer__link" onClick={() => navigate('/register')}>Sign Up</button>
+                <button type="button" className="bh-footer__link" onClick={() => navigate('/login')}>Login</button>
+              </>
+            )}
           </div>
         </div>
       </footer>

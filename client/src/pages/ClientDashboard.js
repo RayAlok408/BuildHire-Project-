@@ -3,17 +3,19 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import {
-  Alert, Avatar, Button, Card, EmptyState, Field, Icon, Segmented, SkeletonCards, StatBar, StatusBadge, TopNav, skillIcon,
+  Alert, Avatar, Button, Card, EmptyState, Field, Icon, Segmented, SkeletonCards, StatBar, StatusBadge, TopNav, skillIcon, useConfirm,
 } from '../components';
+import { authHeaders, clearSession, getToken, getUser } from '../session';
+import { useDocumentTitle } from '../hooks';
+import { timeAgo } from '../time';
 import './Dashboard.css';
 
 const API = 'https://buildhire-server.onrender.com';
-const token = localStorage.getItem('token');
-const socket = io(API, { auth: { token } });
-const headers = { Authorization: `Bearer ${token}` };
 
 function ClientDashboard() {
   const navigate = useNavigate();
+  useDocumentTitle('Client dashboard');
+  const { confirm, dialog } = useConfirm();
   const [form, setForm] = useState({ title: '', description: '', skill: '' });
   const [jobs, setJobs] = useState([]);
   const [loaded, setLoaded] = useState(false);
@@ -23,22 +25,27 @@ function ClientDashboard() {
   const [reviewingJobId, setReviewingJobId] = useState(null);
   const [reviewForm, setReviewForm] = useState({ rating: '', review: '' });
   const [reviewMsg, setReviewMsg] = useState('');
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = getUser();
 
   const fetchJobs = useCallback(async () => {
     try {
-      const res = await axios.get(`${API}/api/jobs/myjobs`, { headers });
+      const res = await axios.get(`${API}/api/jobs/myjobs`, { headers: authHeaders() });
       setJobs(res.data);
     } catch (err) { console.log(err); }
     finally { setLoaded(true); }
   }, []);
 
   useEffect(() => {
+    // The socket is opened per visit with the current token (a fresh login is picked up) and closed on leave.
+    const socket = io(API, { auth: { token: getToken() } });
     fetchJobs();
     const bookingEvents = ['booking:accepted', 'booking:started', 'booking:cancelled'];
     bookingEvents.forEach(event => socket.on(event, fetchJobs));
 
-    return () => bookingEvents.forEach(event => socket.off(event, fetchJobs));
+    return () => {
+      bookingEvents.forEach(event => socket.off(event, fetchJobs));
+      socket.disconnect();
+    };
   }, [fetchJobs]);
 
   const handle = e => setForm({ ...form, [e.target.name]: e.target.value });
@@ -51,7 +58,7 @@ function ClientDashboard() {
       setLoading(true);
       await axios.post(`${API}/api/jobs/create`, {
         ...form, coordinates: [75.8573, 30.9010]
-      }, { headers });
+      }, { headers: authHeaders() });
       setMsg('success');
       setForm({ title: '', description: '', skill: '' });
       fetchJobs();
@@ -62,7 +69,7 @@ function ClientDashboard() {
   };
 
   const completeJob = async (id) => {
-    await axios.put(`${API}/api/jobs/complete/${id}`, {}, { headers });
+    await axios.put(`${API}/api/jobs/complete/${id}`, {}, { headers: authHeaders() });
     setReviewingJobId(id);
     fetchJobs();
   };
@@ -77,7 +84,7 @@ function ClientDashboard() {
       await axios.post(`${API}/api/jobs/${id}/review`, {
         rating: Number(reviewForm.rating),
         review: reviewForm.review
-      }, { headers });
+      }, { headers: authHeaders() });
       setReviewingJobId(null);
       setReviewForm({ rating: '', review: '' });
       setReviewMsg('Review submitted successfully.');
@@ -88,12 +95,22 @@ function ClientDashboard() {
   };
 
   const cancelJob = async (id) => {
-    await axios.put(`${API}/api/jobs/cancel/${id}`, { reason: 'Cancelled by client' }, { headers });
+    await axios.put(`${API}/api/jobs/cancel/${id}`, { reason: 'Cancelled by client' }, { headers: authHeaders() });
     fetchJobs();
   };
 
+  const confirmCancel = async (job) => {
+    const ok = await confirm({
+      title: 'Cancel this job?',
+      message: `"${job.title}" will be cancelled and the worker will be told. This cannot be undone.`,
+      confirmLabel: 'Cancel job',
+      cancelLabel: 'Keep job',
+    });
+    if (ok) cancelJob(job._id);
+  };
+
   const logout = () => {
-    localStorage.clear();
+    clearSession();
     navigate('/login');
   };
 
@@ -116,7 +133,7 @@ function ClientDashboard() {
         <Button variant="ghost" size="sm" icon="log-out" onClick={logout}>Logout</Button>
       </TopNav>
 
-      <main className="bh-dash__main">
+      <main id="main" tabIndex={-1} className="bh-dash__main">
         <Card tone="ink" className="bh-welcome bh-rise bh-on-ink">
           <div className="bh-welcome__inner">
             <div>
@@ -169,7 +186,7 @@ function ClientDashboard() {
                   <span className="bh-job__tile"><Icon name={skillIcon(job.skill)} size={22} /></span>
                   <div className="bh-job__titles">
                     <h3 className="bh-job__title">{job.title}</h3>
-                    <p className="bh-job__skill">{job.skill}</p>
+                    <p className="bh-job__skill">{job.skill}{job.createdAt ? ` · Posted ${timeAgo(job.createdAt)}` : ''}</p>
                   </div>
                   <StatusBadge status={job.status} />
                 </div>
@@ -189,7 +206,7 @@ function ClientDashboard() {
                 {(job.status === 'accepted' || job.status === 'in_progress') && (
                   <div className="bh-job__actions">
                     <Button icon="check" onClick={() => completeJob(job._id)}>Mark Complete</Button>
-                    <Button variant="danger" icon="x" onClick={() => cancelJob(job._id)}>Cancel Job</Button>
+                    <Button variant="danger" icon="x" onClick={() => confirmCancel(job)}>Cancel Job</Button>
                   </div>
                 )}
                 {job.status === 'completed' && (
@@ -234,6 +251,7 @@ function ClientDashboard() {
           </div>
         )}
       </main>
+      {dialog}
     </div>
   );
 }

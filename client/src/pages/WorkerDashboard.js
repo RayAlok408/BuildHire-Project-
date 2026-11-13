@@ -3,33 +3,37 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import {
-  Alert, Avatar, Button, Card, EmptyState, Icon, SkeletonCards, StatusBadge, Switch, TopNav, cx, skillIcon,
+  Alert, Avatar, Button, Card, EmptyState, Icon, SkeletonCards, StatusBadge, Switch, TopNav, cx, skillIcon, useConfirm,
 } from '../components';
+import { authHeaders, clearSession, getToken, getUser } from '../session';
+import { useDocumentTitle } from '../hooks';
+import { timeAgo } from '../time';
 import './Dashboard.css';
 
 const API = 'https://buildhire-server.onrender.com';
-const token = localStorage.getItem('token');
-const socket = io(API, { auth: { token } });
-const headers = { Authorization: `Bearer ${token}` };
 
 function WorkerDashboard() {
   const navigate = useNavigate();
+  useDocumentTitle('Worker dashboard');
+  const { confirm, dialog } = useConfirm();
   const [jobs, setJobs] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [acceptedJob, setAcceptedJob] = useState(null);
   const [msg, setMsg] = useState('');
   const [available, setAvailable] = useState(true);
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = getUser();
 
   const fetchJobs = useCallback(async () => {
     try {
-      const res = await axios.get(`${API}/api/jobs/open`, { headers });
+      const res = await axios.get(`${API}/api/jobs/open`, { headers: authHeaders() });
       setJobs(res.data);
     } catch (err) { console.log(err); }
     finally { setLoaded(true); }
   }, []);
 
   useEffect(() => {
+    // The socket is opened per visit with the current token (a fresh login is picked up) and closed on leave.
+    const socket = io(API, { auth: { token: getToken() } });
     fetchJobs();
     const handleNewJob = newJob => {
       setMsg(`New job nearby: ${newJob.title}`);
@@ -55,27 +59,38 @@ function WorkerDashboard() {
       socket.off('job:new', handleNewJob);
       socket.off('booking:cancelled', handleBookingCancelled);
       socket.off('booking:completed', handleBookingCompleted);
+      socket.disconnect();
     };
   }, [fetchJobs, user?.id]);
 
   const acceptJob = async (job) => {
-    const res = await axios.put(`${API}/api/jobs/accept/${job._id}`, {}, { headers });
+    const res = await axios.put(`${API}/api/jobs/accept/${job._id}`, {}, { headers: authHeaders() });
     setAcceptedJob(res.data.job);
     setMsg('');
     fetchJobs();
   };
 
   const startJob = async () => {
-    const res = await axios.put(`${API}/api/jobs/start/${acceptedJob._id}`, {}, { headers });
+    const res = await axios.put(`${API}/api/jobs/start/${acceptedJob._id}`, {}, { headers: authHeaders() });
     setAcceptedJob(res.data.job);
     setMsg('Job started');
   };
 
   const cancelJob = async () => {
-    await axios.put(`${API}/api/jobs/cancel/${acceptedJob._id}`, { reason: 'Cancelled by worker' }, { headers });
+    await axios.put(`${API}/api/jobs/cancel/${acceptedJob._id}`, { reason: 'Cancelled by worker' }, { headers: authHeaders() });
     setAcceptedJob(null);
     setMsg('Booking cancelled');
     fetchJobs();
+  };
+
+  const confirmCancel = async () => {
+    const ok = await confirm({
+      title: 'Cancel this booking?',
+      message: `"${acceptedJob.title}" will go back to the client as cancelled. This cannot be undone.`,
+      confirmLabel: 'Cancel job',
+      cancelLabel: 'Keep job',
+    });
+    if (ok) cancelJob();
   };
 
   const openMap = (job) => {
@@ -84,7 +99,7 @@ function WorkerDashboard() {
   };
 
   const logout = () => {
-    localStorage.clear();
+    clearSession();
     navigate('/login');
   };
 
@@ -96,7 +111,7 @@ function WorkerDashboard() {
           <StatusBadge status={acceptedJob.status}>{inProgress ? 'Job In Progress' : 'Job Accepted'}</StatusBadge>
           <Button variant="ghost" size="sm" icon="log-out" onClick={logout}>Logout</Button>
         </TopNav>
-        <main className="bh-dash__main">
+        <main id="main" tabIndex={-1} className="bh-dash__main">
           <Card tone="ink" pad="sm" className="bh-banner bh-rise bh-on-ink">
             <span className="bh-banner__icon"><Icon name={inProgress ? 'play' : 'navigation'} size={22} /></span>
             <h1 className="bh-banner__text">
@@ -134,10 +149,11 @@ function WorkerDashboard() {
             {acceptedJob.status === 'accepted' && (
               <Button icon="play" onClick={startJob}>Start Job</Button>
             )}
-            <Button variant="danger" icon="x" onClick={cancelJob}>Cancel Job</Button>
+            <Button variant="danger" icon="x" onClick={confirmCancel}>Cancel Job</Button>
             <Button variant="ghost" icon="arrow-left" onClick={() => setAcceptedJob(null)}>Back to Dashboard</Button>
           </div>
         </main>
+        {dialog}
       </div>
     );
   }
@@ -157,7 +173,7 @@ function WorkerDashboard() {
 
       {msg && <Alert key={msg} tone="notice" bar>{msg}</Alert>}
 
-      <main className="bh-dash__main">
+      <main id="main" tabIndex={-1} className="bh-dash__main">
         <Card tone="ink" className="bh-welcome bh-rise bh-on-ink">
           <div className="bh-welcome__inner">
             <div>
@@ -203,12 +219,19 @@ function WorkerDashboard() {
                   <Icon name="map-pin" size={16} />
                   Within 10 km
                 </span>
+                {job.createdAt && (
+                  <span className="bh-job__meta-item">
+                    <Icon name="clock" size={16} />
+                    {timeAgo(job.createdAt)}
+                  </span>
+                )}
               </div>
               <Button full icon="check" onClick={() => acceptJob(job)}>Accept This Job</Button>
             </Card>
           ))}
         </div>
       </main>
+      {dialog}
     </div>
   );
 }

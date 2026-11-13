@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { Alert, Button, Card, Field, Icon, Logo, StatBar, stagger } from '../components';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Alert, Button, Card, Field, Icon, Logo, SkipLink, StatBar, stagger } from '../components';
+import { clearSession } from '../session';
+import { useDocumentTitle } from '../hooks';
 import './Auth.css';
 
 const API = 'https://buildhire-server.onrender.com';
@@ -14,6 +16,9 @@ const BRAND_STATS = [
 
 function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const expired = searchParams.get('expired') === '1';
+  useDocumentTitle('Log in');
   const [form, setForm] = useState({ email: '', password: '' });
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,7 +31,7 @@ function Login() {
     }
     try {
       setLoading(true);
-      localStorage.clear();
+      clearSession();
       const res = await axios.post(`${API}/api/auth/login`, form);
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
@@ -44,6 +49,7 @@ function Login() {
 
   return (
     <div className="bh-auth">
+      <SkipLink />
       <aside className="bh-auth__brand bh-on-ink">
         <Logo tone="dark" />
         <div>
@@ -54,12 +60,14 @@ function Login() {
         </div>
       </aside>
 
-      <main className="bh-auth__main bh-backdrop">
+      <main id="main" tabIndex={-1} className="bh-auth__main bh-backdrop">
         <Card className="bh-auth__card bh-rise" style={stagger(1)}>
           <h2 className="bh-auth__title">Welcome back</h2>
           <p className="bh-auth__sub">
             Don't have an account? <button type="button" className="bh-link" onClick={() => navigate('/register')}>Sign up free</button>
           </p>
+
+          {expired && !msg && <Alert tone="info" className="bh-toast">Your session has expired. Please log in again.</Alert>}
 
           <div className="bh-auth__form">
             <Field

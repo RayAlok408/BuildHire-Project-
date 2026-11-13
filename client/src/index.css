@@ -54,3 +54,6 @@ img, svg, iframe { max-width: 100%; }
     transition: none !important;
   }
 }
+
+@keyframes bh-fade { from { opacity: 0; } to { opacity: 0.55; } }
+[tabindex='-1']:focus { outline: none; }

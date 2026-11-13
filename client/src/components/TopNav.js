@@ -1,5 +1,6 @@
 import React from 'react';
 import Logo from './Logo';
+import SkipLink from './SkipLink';
 import cx from './cx';
 
 // Frosted top bar. fixed: pinned over the page (landing). Default is sticky (dashboards).
@@ -8,6 +9,7 @@ import cx from './cx';
 function TopNav({ fixed = false, compact = false, leading, children, className = '', label = 'Main' }) {
   return (
     <header className={cx('bh-nav', fixed && 'bh-nav--fixed', compact && 'bh-nav--compact', className)}>
+      <SkipLink />
       <div className="bh-nav__lead">
         <Logo />
         {leading}

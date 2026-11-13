@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Alert, Button, Card, Field, Icon, Logo, Segmented, stagger } from '../components';
+import { Alert, Button, Card, Field, Icon, Logo, Segmented, SkipLink, stagger } from '../components';
+import { useDocumentTitle } from '../hooks';
 import './Auth.css';
 
 const API = 'https://buildhire-server.onrender.com';
@@ -15,6 +16,7 @@ const ROLES = [
 
 function Register() {
   const navigate = useNavigate();
+  useDocumentTitle('Create account');
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'client', skill: '' });
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
@@ -40,6 +42,7 @@ function Register() {
 
   return (
     <div className="bh-auth">
+      <SkipLink />
       <aside className="bh-auth__brand bh-on-ink">
         <Logo tone="dark" />
         <div>
@@ -57,7 +60,7 @@ function Register() {
         </div>
       </aside>
 
-      <main className="bh-auth__main bh-backdrop">
+      <main id="main" tabIndex={-1} className="bh-auth__main bh-backdrop">
         <Card className="bh-auth__card bh-rise" style={stagger(1)}>
           <h2 className="bh-auth__title">Create your account</h2>
           <p className="bh-auth__sub">

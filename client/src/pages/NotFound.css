@@ -1,0 +1,11 @@
+.bh-notfound { min-height: 100vh; display: flex; flex-direction: column; background: var(--cream); }
+.bh-notfound__main {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  padding: var(--space-64) 6%;
+}
+.bh-notfound__title { max-width: 14ch; margin-bottom: var(--space-24); font-size: clamp(2.5rem, 7vw, 5rem); line-height: 1.05; }
+.bh-notfound__text { max-width: 420px; margin-bottom: var(--space-32); font-size: 1.1rem; font-weight: 300; line-height: 1.7; color: var(--muted-text); }
+.bh-notfound__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-16); }
+@media (max-width: 640px) {
+  .bh-notfound__actions, .bh-notfound__actions .bh-btn { width: 100%; }
+}

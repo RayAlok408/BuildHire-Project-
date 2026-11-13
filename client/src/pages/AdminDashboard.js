@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import {
-  Alert, Avatar, Button, Card, EmptyState, Icon, Segmented, SkeletonCards, StatusBadge, TopNav, skillIcon,
+  Alert, Avatar, Button, Card, EmptyState, Icon, Segmented, SkeletonCards, StatusBadge, TopNav, skillIcon, useConfirm,
 } from '../components';
+import { authHeaders, clearSession, getUser } from '../session';
+import { useDocumentTitle } from '../hooks';
 import './Dashboard.css';
 
 const API = 'https://buildhire-server.onrender.com';
-const token = localStorage.getItem('token');
-const headers = { Authorization: `Bearer ${token}` };
 
 const TABS = [
   { value: 'users', label: 'Users', icon: 'users' },
@@ -17,7 +17,9 @@ const TABS = [
 
 function AdminDashboard() {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = getUser();
+  useDocumentTitle('Admin');
+  const { confirm, dialog } = useConfirm();
   const [tab, setTab] = useState('users');
   const [users, setUsers] = useState([]);
   const [jobs, setJobs] = useState([]);
@@ -34,7 +36,7 @@ function AdminDashboard() {
 
   const loadUsers = async () => {
     try {
-      const response = await axios.get(`${API}/api/admin/users?page=1&limit=50`, { headers });
+      const response = await axios.get(`${API}/api/admin/users?page=1&limit=50`, { headers: authHeaders() });
       setUsers(response.data);
     } catch (error) {
       setMessage(error.response?.data?.message || 'Unable to load users');
@@ -45,7 +47,7 @@ function AdminDashboard() {
 
   const loadJobs = async () => {
     try {
-      const response = await axios.get(`${API}/api/admin/jobs?page=1&limit=50`, { headers });
+      const response = await axios.get(`${API}/api/admin/jobs?page=1&limit=50`, { headers: authHeaders() });
       setJobs(response.data);
     } catch (error) {
       setMessage(error.response?.data?.message || 'Unable to load jobs');
@@ -66,7 +68,7 @@ function AdminDashboard() {
       const endpoint = body.blocked === undefined
         ? `/api/admin/workers/${id}/approval`
         : `/api/admin/users/${id}/block`;
-      await axios.patch(`${API}${endpoint}`, body, { headers });
+      await axios.patch(`${API}${endpoint}`, body, { headers: authHeaders() });
       setMessage(successMessage);
       await loadUsers();
     } catch (error) {
@@ -76,8 +78,22 @@ function AdminDashboard() {
     }
   };
 
+  // Blocking locks someone out, so ask first. Unblocking goes straight through.
+  const toggleBlock = async (account) => {
+    if (!account.blocked) {
+      const ok = await confirm({
+        title: `Block ${account.name}?`,
+        message: 'They lose access right away and cannot log in until you unblock them.',
+        confirmLabel: 'Block user',
+        cancelLabel: 'Keep active',
+      });
+      if (!ok) return;
+    }
+    updateUser(account._id, { blocked: !account.blocked }, account.blocked ? 'User unblocked' : 'User blocked');
+  };
+
   const logout = () => {
-    localStorage.clear();
+    clearSession();
     navigate('/login');
   };
 
@@ -88,7 +104,7 @@ function AdminDashboard() {
       <TopNav compact label="Account" leading={<StatusBadge status="outline">Admin</StatusBadge>}>
         <Button variant="ghost" size="sm" icon="log-out" onClick={logout}>Logout</Button>
       </TopNav>
-      <main className="bh-dash__main bh-dash__main--wide">
+      <main id="main" tabIndex={-1} className="bh-dash__main bh-dash__main--wide">
         <div className="bh-admin__head bh-rise">
           <div>
             <p className="bh-eyebrow">Control Center</p>
@@ -139,7 +155,7 @@ function AdminDashboard() {
                     size="sm"
                     icon={account.blocked ? 'check' : 'slash'}
                     disabled={loading}
-                    onClick={() => updateUser(account._id, { blocked: !account.blocked }, account.blocked ? 'User unblocked' : 'User blocked')}
+                    onClick={() => toggleBlock(account)}
                   >
                     {account.blocked ? 'Unblock' : 'Block'}
                   </Button>
@@ -169,6 +185,7 @@ function AdminDashboard() {
           </section>
         )}
       </main>
+      {dialog}
     </div>
   );
 }
