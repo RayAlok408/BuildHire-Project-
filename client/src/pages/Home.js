@@ -63,9 +63,7 @@ function Home() {
       </TopNav>
 
       <main>
-        <section className="bh-hero">
-          <div className="bh-hero__glow" />
-          <div className="bh-hero__grid" />
+        <section className="bh-hero bh-backdrop">
           <div className="bh-live-pill bh-rise" style={stagger(0)}>
             <span className="bh-live-dot" />
             Workers available near you right now

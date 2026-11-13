@@ -258,6 +258,30 @@
 .bh-reveal--group > .bh-stagger { opacity: 0; }
 .bh-reveal--group.is-visible > .bh-stagger { opacity: 1; animation: bh-rise var(--motion-reveal) var(--motion-ease) backwards; }
 
+/* ---------- Inline link (button that reads as a link) ---------- */
+.bh-link {
+  padding: 0 var(--space-4); margin: 0 calc(var(--space-4) * -1);
+  background: none; border: 0; border-radius: var(--space-4);
+  font: inherit; font-weight: 500; color: var(--ink); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
+  transition: background-color var(--motion-fast) var(--motion-ease);
+}
+.bh-link:hover { background: var(--yellow); text-decoration: none; }
+
+/* ---------- Divider with a label ---------- */
+.bh-divider { display: flex; align-items: center; gap: var(--space-16); font-size: 0.85rem; color: var(--muted-text); }
+.bh-divider::before, .bh-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+/* ---------- Landing backdrop: grid + the subtle yellow glow (the only glow in the app) ---------- */
+.bh-backdrop { position: relative; isolation: isolate; }
+.bh-backdrop::before, .bh-backdrop::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.bh-backdrop::before { background: radial-gradient(ellipse 80% 60% at 50% 20%, var(--yellow-glow) 0%, transparent 70%); }
+.bh-backdrop::after {
+  opacity: 0.4;
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
 /* ---------- Motion off ---------- */
 @media (prefers-reduced-motion: reduce) {
   .bh-btn:hover, .bh-card--hover:hover { transform: none !important; box-shadow: none !important; }
