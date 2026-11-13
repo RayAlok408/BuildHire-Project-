@@ -251,7 +251,7 @@
 @media (max-width: 480px) {
   .bh-nav { padding: var(--space-12) var(--space-16); }
   .bh-nav__actions { gap: var(--space-8); }
-  .bh-logo__mark { width: 36px; height: 36px; }
+  .bh-logo__mark { width: 36px; height: 36px; font-size: 0.85rem; }
   .bh-logo__text { font-size: 1.1rem; }
   .bh-nav .bh-btn--sm { padding: var(--space-8) var(--space-12); font-size: 0.85rem; }
 }

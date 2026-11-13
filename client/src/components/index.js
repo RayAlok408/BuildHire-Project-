@@ -18,3 +18,4 @@ export { default as Segmented } from './Segmented';
 export { default as Switch } from './Switch';
 export { default as StatBar } from './StatBar';
 export { default as cx, stagger } from './cx';
+export { skillIcon } from './skills';
