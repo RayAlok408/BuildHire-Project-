@@ -120,7 +120,7 @@ function ClientDashboard() {
         <Card tone="ink" className="bh-welcome bh-rise bh-on-ink">
           <div className="bh-welcome__inner">
             <div>
-              <h2 className="bh-welcome__title">Welcome, {user?.name}!</h2>
+              <h1 className="bh-welcome__title">Welcome, {user?.name}!</h1>
               <p className="bh-welcome__sub">Post a job and get skilled workers at your doorstep</p>
             </div>
             <StatBar tone="boxes" items={stats} />
@@ -131,7 +131,7 @@ function ClientDashboard() {
 
         {activeTab === 'post' && (
           <Card className="bh-rise">
-            <h3 className="bh-form-card__title">Post a New Job</h3>
+            <h2 className="bh-form-card__title">Post a New Job</h2>
             <p className="bh-form-card__sub">Nearby workers will be notified instantly</p>
             <div className="bh-form">
               <Field label="Job Title" name="title" placeholder="e.g. Fix my tap, Paint my room" value={form.title} onChange={handle} />
@@ -156,6 +156,7 @@ function ClientDashboard() {
 
         {activeTab === 'jobs' && (
           <div className="bh-list">
+            <h2 className="bh-sr-only">My jobs</h2>
             {!loaded && <SkeletonCards count={2} />}
             {loaded && jobs.length === 0 && (
               <EmptyState icon="clipboard" title="No jobs posted yet" text="Jobs you post show up here with their status.">

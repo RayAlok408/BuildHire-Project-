@@ -99,9 +99,9 @@ function WorkerDashboard() {
         <main className="bh-dash__main">
           <Card tone="ink" pad="sm" className="bh-banner bh-rise bh-on-ink">
             <span className="bh-banner__icon"><Icon name={inProgress ? 'play' : 'navigation'} size={22} /></span>
-            <p className="bh-banner__text">
+            <h1 className="bh-banner__text">
               {inProgress ? 'Job In Progress — Service is underway' : 'Job Accepted — Head to client location now'}
-            </p>
+            </h1>
           </Card>
           <div className="bh-details">
             <Card pad="sm" rise={1}>
@@ -161,7 +161,7 @@ function WorkerDashboard() {
         <Card tone="ink" className="bh-welcome bh-rise bh-on-ink">
           <div className="bh-welcome__inner">
             <div>
-              <h2 className="bh-welcome__title">Worker Dashboard</h2>
+              <h1 className="bh-welcome__title">Worker Dashboard</h1>
               <p className="bh-welcome__sub">You will be notified instantly when a job is posted nearby</p>
             </div>
             <span className="bh-skill-chip">
@@ -171,7 +171,7 @@ function WorkerDashboard() {
           </div>
         </Card>
 
-        <h3 className="bh-section-title">Available Jobs Near You</h3>
+        <h2 className="bh-section-title">Available Jobs Near You</h2>
 
         <div className="bh-list">
           {!loaded && <SkeletonCards count={2} />}

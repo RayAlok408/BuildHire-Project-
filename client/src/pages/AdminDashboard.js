@@ -107,6 +107,7 @@ function AdminDashboard() {
 
         {tab === 'users' ? (
           <section className="bh-list" aria-label="Users">
+            <h2 className="bh-sr-only">Users</h2>
             {!usersLoaded && <SkeletonCards count={3} />}
             {usersLoaded && users.length === 0 && (
               <EmptyState icon="users" title="No users yet" text="Accounts show up here as people sign up." />
@@ -148,6 +149,7 @@ function AdminDashboard() {
           </section>
         ) : (
           <section className="bh-list" aria-label="Jobs">
+            <h2 className="bh-sr-only">Jobs</h2>
             {!jobsLoaded && <SkeletonCards count={3} />}
             {jobsLoaded && jobs.length === 0 && (
               <EmptyState icon="briefcase" title="No jobs yet" text="Posted jobs show up here with their status." />

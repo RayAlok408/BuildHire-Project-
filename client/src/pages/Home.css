@@ -60,7 +60,15 @@
 
 /* ---------- How it works ---------- */
 .bh-steps { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-24); }
-.bh-step__num { margin-bottom: var(--space-16); font-family: var(--font-display); font-size: 4rem; font-weight: 800; line-height: 1; color: var(--yellow); }
+/* Ink digits over the same yellow marker as the hero's "instantly" (yellow text on white fails AA). */
+.bh-step__num {
+  position: relative; isolation: isolate; display: block; width: fit-content; margin-bottom: var(--space-16);
+  font-family: var(--font-display); font-size: 4rem; font-weight: 800; line-height: 1; color: var(--ink);
+}
+.bh-step__num::after {
+  content: ''; position: absolute; left: calc(var(--space-4) * -1); right: calc(var(--space-4) * -1); bottom: 6px; height: 20px;
+  background: var(--yellow); border-radius: var(--space-4); z-index: -1;
+}
 .bh-step__icon { margin-bottom: var(--space-16); color: var(--ink); }
 .bh-step__title { margin-bottom: var(--space-8); font-size: 1.1rem; font-weight: 700; color: var(--ink); }
 .bh-step__text { font-size: 0.88rem; line-height: 1.65; color: var(--muted-text); }

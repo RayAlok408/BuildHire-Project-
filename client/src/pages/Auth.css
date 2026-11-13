@@ -62,7 +62,11 @@
   .bh-auth__main { padding: var(--space-32) 6% var(--space-48); }
 }
 @media (max-width: 600px) {
-  .bh-auth__headline { display: none; }
+  /* keep the page's h1 for screen readers, just don't draw it on phones */
+  .bh-auth__headline {
+    position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden;
+    clip: rect(0, 0, 0, 0); white-space: nowrap;
+  }
   .bh-auth__brand { padding: var(--space-16) 6%; }
 }
 @media (max-width: 380px) {
