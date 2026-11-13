@@ -18,6 +18,8 @@ function ClientDashboard() {
   const [reviewingJobId, setReviewingJobId] = useState(null);
   const [reviewForm, setReviewForm] = useState({ rating: '', review: '' });
   const [reviewMsg, setReviewMsg] = useState('');
+  const [payingJobId, setPayingJobId] = useState(null);
+  const [payMsg, setPayMsg] = useState('');
   const user = JSON.parse(localStorage.getItem('user'));
 
   const fetchJobs = useCallback(async () => {
@@ -84,6 +86,31 @@ function ClientDashboard() {
   const cancelJob = async (id) => {
     await axios.put(`${API}/api/jobs/cancel/${id}`, { reason: 'Cancelled by client' }, { headers });
     fetchJobs();
+  };
+
+  const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+
+  const payForJob = async (id) => {
+    setPayingJobId(id);
+    setPayMsg('');
+    try {
+      const orderRes = await axios.post(`${API}/api/payments/create-order`, { jobId: id }, { headers: authHeaders() });
+      const { orderId } = orderRes.data;
+      // Demo gateway. Asli Razorpay mein yahan Razorpay Checkout khulega.
+      const payRes = await axios.post(`${API}/api/payments/mock-gateway/pay`, { orderId }, { headers: authHeaders() });
+      await axios.post(`${API}/api/payments/verify`, {
+        jobId: id,
+        orderId,
+        paymentId: payRes.data.paymentId,
+        signature: payRes.data.signature
+      }, { headers: authHeaders() });
+      setPayMsg('Payment successful (demo).');
+      fetchJobs();
+    } catch (err) {
+      setPayMsg(err.response?.data?.message || 'Payment failed.');
+    } finally {
+      setPayingJobId(null);
+    }
   };
 
   const logout = () => {
@@ -161,7 +188,7 @@ function ClientDashboard() {
             {msg === 'error' && <div style={styles.errorMsg}>Something went wrong. Try again.</div>}
             {msg === 'fill' && <div style={styles.errorMsg}>Please fill all fields.</div>}
             <button style={styles.btn} onClick={postJob} disabled={loading}>
-              {loading ? 'Posting...' : 'Post Job — Notify Nearby Workers'}
+              {loading ? 'Posting...' : 'Post Job - Notify Nearby Workers'}
             </button>
           </div>
         )}
@@ -170,11 +197,11 @@ function ClientDashboard() {
           <div>
             {jobs.length === 0 && (
               <div style={styles.emptyBox}>
-                <p style={{ fontSize: '2.5rem', margin: 0 }}>📋</p>
                 <p style={{ color: '#64748b', margin: '0.5rem 0 1rem' }}>No jobs posted yet</p>
                 <button style={{ ...styles.btn, width: 'auto', padding: '0.7rem 1.5rem' }} onClick={() => setActiveTab('post')}>Post Your First Job</button>
               </div>
             )}
+            {payMsg && <div style={payMsg.startsWith('Payment successful') ? styles.successMsg : styles.errorMsg}>{payMsg}</div>}
             {jobs.map(job => (
               <div key={job._id} style={styles.jobCard}>
                 <div style={styles.jobTop}>
@@ -192,7 +219,7 @@ function ClientDashboard() {
                     <div style={styles.workerAvatar}>{job.worker.name?.[0]?.toUpperCase()}</div>
                     <div>
                       <p style={styles.workerName}>Worker: {job.worker.name}</p>
-                      <p style={styles.workerRating}>Rating: {job.worker.rating ? job.worker.rating.toFixed(1) : 'New'} ★</p>
+                      <p style={styles.workerRating}>Rating: {job.worker.rating ? job.worker.rating.toFixed(1) : 'New'} / 5</p>
                     </div>
                   </div>
                 )}
@@ -205,6 +232,13 @@ function ClientDashboard() {
                 {job.status === 'completed' && (
                   <div>
                     <div style={styles.completedTag}>Job completed successfully!</div>
+                    {job.payment?.status === 'paid' ? (
+                      <div style={styles.paidTag}>Paid - Rs {job.payment.amount} (demo)</div>
+                    ) : (
+                      <button style={styles.payBtn} disabled={payingJobId === job._id} onClick={() => payForJob(job._id)}>
+                        {payingJobId === job._id ? 'Processing...' : 'Pay Now (Demo)'}
+                      </button>
+                    )}
                     {!job.review && reviewingJobId !== job._id && (
                       <button style={styles.reviewBtn} onClick={() => { setReviewingJobId(job._id); setReviewMsg(''); }}>
                         Review Worker
@@ -292,7 +326,9 @@ const styles = {
   cancelBtn: { width: '100%', padding: '0.8rem', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontSize: '0.95rem', marginTop: '0.6rem' },
   reviewBtn: { width: '100%', padding: '0.8rem', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontSize: '0.95rem', marginTop: '0.6rem' },
   reviewCard: { background: '#f8faff', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '1rem', marginTop: '0.8rem' },
-  completedTag: { background: '#dcfce7', color: '#16a34a', padding: '0.6rem', borderRadius: '8px', textAlign: 'center', fontSize: '0.9rem', fontWeight: '600' }
+  completedTag: { background: '#dcfce7', color: '#16a34a', padding: '0.6rem', borderRadius: '8px', textAlign: 'center', fontSize: '0.9rem', fontWeight: '600' },
+  payBtn: { width: '100%', padding: '0.8rem', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontSize: '0.95rem', marginTop: '0.6rem' },
+  paidTag: { background: '#dbeafe', color: '#1d4ed8', padding: '0.6rem', borderRadius: '8px', textAlign: 'center', fontSize: '0.9rem', fontWeight: '600', marginTop: '0.6rem' }
 };
 
 export default ClientDashboard;
