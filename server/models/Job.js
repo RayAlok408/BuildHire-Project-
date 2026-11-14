@@ -15,7 +15,14 @@ const jobSchema = new mongoose.Schema({
     coordinates: { type: [Number], default: [0, 0] }
   },
   review: { type: String },
-  rating: { type: Number }
+  rating: { type: Number },
+  payment: {
+    status: { type: String, enum: ['pending', 'paid'] },
+    orderId: { type: String },
+    paymentId: { type: String },
+    amount: { type: Number },
+    paidAt: { type: Date }
+  }
 }, { timestamps: true });
 
 jobSchema.index({ location: '2dsphere' });

@@ -121,4 +121,4 @@ router.post('/verify', async (req, res, next) => {
   }
 });
 
-module.exports = routerL
+module.exports = router;
