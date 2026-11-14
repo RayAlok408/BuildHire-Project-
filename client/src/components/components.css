@@ -122,6 +122,7 @@
 .bh-badge--in-progress { background: var(--status-in-progress-bg); color: var(--status-in-progress-fg); }
 .bh-badge--completed, .bh-badge--active { background: var(--status-completed-bg); color: var(--status-completed-fg); }
 .bh-badge--cancelled, .bh-badge--blocked { background: var(--status-cancelled-bg); color: var(--status-cancelled-fg); }
+.bh-badge--sentence { text-transform: none; letter-spacing: 0; font-size: 0.8rem; align-self: flex-start; }
 .bh-badge--outline { background: var(--surface); color: var(--text); border: 1px solid var(--line); letter-spacing: 0; text-transform: none; font-size: 0.8rem; }
 
 /* ---------- Alert / toast ---------- */

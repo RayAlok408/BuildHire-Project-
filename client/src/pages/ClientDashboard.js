@@ -25,6 +25,8 @@ function ClientDashboard() {
   const [reviewingJobId, setReviewingJobId] = useState(null);
   const [reviewForm, setReviewForm] = useState({ rating: '', review: '' });
   const [reviewMsg, setReviewMsg] = useState('');
+  const [payingJobId, setPayingJobId] = useState(null);
+  const [payMsg, setPayMsg] = useState('');
   const user = getUser();
 
   const fetchJobs = useCallback(async () => {
@@ -99,6 +101,31 @@ function ClientDashboard() {
     fetchJobs();
   };
 
+  // Demo payment: create an order, "pay" it at the mock gateway, then have the server verify the signature.
+  // The token is read at request time by authHeaders() on each call.
+  const payForJob = async (id) => {
+    setPayingJobId(id);
+    setPayMsg('');
+    try {
+      const orderRes = await axios.post(`${API}/api/payments/create-order`, { jobId: id }, { headers: authHeaders() });
+      const { orderId } = orderRes.data;
+      // Demo gateway. With a real gateway (e.g. Razorpay) its checkout would open here.
+      const payRes = await axios.post(`${API}/api/payments/mock-gateway/pay`, { orderId }, { headers: authHeaders() });
+      await axios.post(`${API}/api/payments/verify`, {
+        jobId: id,
+        orderId,
+        paymentId: payRes.data.paymentId,
+        signature: payRes.data.signature
+      }, { headers: authHeaders() });
+      setPayMsg('Payment successful (demo).');
+      fetchJobs();
+    } catch (err) {
+      setPayMsg(err.response?.data?.message || 'Payment failed.');
+    } finally {
+      setPayingJobId(null);
+    }
+  };
+
   const confirmCancel = async (job) => {
     const ok = await confirm({
       title: 'Cancel this job?',
@@ -165,7 +192,7 @@ function ClientDashboard() {
               {msg === 'error' && <Alert tone="error">Something went wrong. Try again.</Alert>}
               {msg === 'fill' && <Alert tone="error">Please fill all fields.</Alert>}
               <Button full loading={loading} icon="file-plus" onClick={postJob}>
-                {loading ? 'Posting' : 'Post Job — Notify Nearby Workers'}
+                {loading ? 'Posting' : 'Post Job - Notify Nearby Workers'}
               </Button>
             </div>
           </Card>
@@ -179,6 +206,9 @@ function ClientDashboard() {
               <EmptyState icon="clipboard" title="No jobs posted yet" text="Jobs you post show up here with their status.">
                 <Button onClick={() => setActiveTab('post')}>Post Your First Job</Button>
               </EmptyState>
+            )}
+            {payMsg && (
+              <Alert key={payMsg} tone={payMsg.startsWith('Payment successful') ? 'success' : 'error'}>{payMsg}</Alert>
             )}
             {jobs.map((job, index) => (
               <Card key={job._id} pad="sm" rise={index} className="bh-job">
@@ -212,8 +242,22 @@ function ClientDashboard() {
                 {job.status === 'completed' && (
                   <div className="bh-job__done">
                     <Alert tone="success">Job completed successfully!</Alert>
+                    {job.payment?.status === 'paid' ? (
+                      <StatusBadge status="completed" className="bh-badge--sentence">
+                        <Icon name="check-circle" size={14} />
+                        Paid - Rs {job.payment.amount} (demo)
+                      </StatusBadge>
+                    ) : (
+                      <Button
+                        icon="credit-card"
+                        loading={payingJobId === job._id}
+                        onClick={() => payForJob(job._id)}
+                      >
+                        {payingJobId === job._id ? 'Processing...' : 'Pay Now (Demo)'}
+                      </Button>
+                    )}
                     {!job.review && reviewingJobId !== job._id && (
-                      <Button icon="star" onClick={() => { setReviewingJobId(job._id); setReviewMsg(''); }}>
+                      <Button variant="ghost" icon="star" onClick={() => { setReviewingJobId(job._id); setReviewMsg(''); }}>
                         Review Worker
                       </Button>
                     )}
