@@ -1,0 +1,80 @@
+/* Login + Register layout: dark brand panel on the left, form on the landing's grid backdrop. */
+
+.bh-auth { position: relative; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); min-height: 100vh; }
+
+/* ---------- Brand panel ---------- */
+.bh-auth__brand {
+  position: sticky; top: 0; align-self: start; min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-48);
+  padding: var(--space-64);
+  background: var(--panel); color: var(--white); border-right: 1px solid var(--panel-border);
+}
+.bh-auth__headline { max-width: 460px; margin-bottom: var(--space-32); font-size: clamp(2rem, 3.2vw, 3rem); line-height: 1.1; color: var(--white); }
+.bh-auth__accent { color: var(--yellow); }
+.bh-auth__list { list-style: none; display: flex; flex-direction: column; gap: var(--space-16); max-width: 460px; }
+.bh-auth__list li { display: flex; align-items: center; gap: var(--space-12); font-size: 1rem; color: var(--white); }
+.bh-auth__tick {
+  width: 28px; height: 28px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--yellow); color: var(--ink); border-radius: 50%;
+}
+
+/* ---------- Form side ---------- */
+.bh-auth__main {
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--space-48) var(--space-24);
+}
+.bh-auth__card { width: 100%; max-width: 440px; }
+.bh-auth__title { margin-bottom: var(--space-8); font-size: 1.75rem; }
+.bh-auth__sub { margin-bottom: var(--space-24); font-size: 0.9rem; color: var(--muted-text); }
+.bh-auth__form { display: flex; flex-direction: column; gap: var(--space-16); }
+.bh-auth__form .bh-divider { margin-top: var(--space-8); }
+
+/* ---------- Quick-login test accounts ---------- */
+.bh-test { margin-top: var(--space-16); }
+.bh-test__title { margin-bottom: var(--space-12); font-family: var(--font-display); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted-text); }
+.bh-test__row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-12); }
+.bh-test__tile {
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4);
+  padding: var(--space-12) var(--space-16);
+  background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-tile);
+  text-align: left; cursor: pointer;
+  transition: transform var(--motion-base) var(--motion-ease), box-shadow var(--motion-base) var(--motion-ease), border-color var(--motion-base) var(--motion-ease);
+}
+.bh-test__role { display: inline-flex; align-items: center; gap: var(--space-8); font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; color: var(--text); }
+.bh-test__email { font-size: 0.8rem; color: var(--muted-text); word-break: break-all; }
+@media (hover: hover) {
+  .bh-test__tile:hover { transform: translateY(-2px); border-color: var(--text); box-shadow: var(--shadow-lift); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bh-test__tile:hover { transform: none; box-shadow: none; }
+}
+
+/* ---------- Register role switch ---------- */
+.bh-auth__roles { margin-bottom: var(--space-24); }
+
+/* ---------- Theme toggle position ---------- */
+.bh-auth__theme { position: absolute; top: var(--space-16); right: var(--space-16); z-index: 5; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .bh-auth { grid-template-columns: 1fr; }
+  /* on phones the toggle sits on the dark brand strip */
+  .bh-auth__theme { color: var(--white); border-color: var(--muted-soft); }
+  .bh-auth__theme:hover { border-color: var(--white); }
+  .bh-auth__brand { position: static; min-height: 0; gap: 0; padding: var(--space-24) 6%; }
+  .bh-auth__headline { margin: var(--space-24) 0 0; font-size: 1.5rem; }
+  .bh-auth__brand .bh-stats, .bh-auth__list { display: none; }
+  .bh-auth__main { padding: var(--space-32) 6% var(--space-48); }
+}
+@media (max-width: 600px) {
+  /* keep the page's h1 for screen readers, just don't draw it on phones */
+  .bh-auth__headline {
+    position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden;
+    clip: rect(0, 0, 0, 0); white-space: nowrap;
+  }
+  .bh-auth__brand { padding: var(--space-16) 6%; }
+}
+@media (max-width: 380px) {
+  .bh-test__row { grid-template-columns: 1fr; }
+}

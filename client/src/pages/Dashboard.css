@@ -1,0 +1,113 @@
+/* Shared layout for the Client, Worker and Admin dashboards. */
+
+.bh-dash { min-height: 100vh; background: var(--bg); }
+.bh-dash__main { max-width: 720px; margin: 0 auto; padding: var(--space-32) var(--space-16) var(--space-64); }
+.bh-dash__main--wide { max-width: 1000px; }
+@media (min-width: 640px) {
+  .bh-dash__main { padding: var(--space-48) var(--space-24) var(--space-96); }
+}
+
+/* ---------- Welcome panel ---------- */
+.bh-welcome { margin-bottom: var(--space-24); }
+.bh-welcome__inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-24); }
+.bh-welcome__title { font-size: 1.5rem; color: var(--white); overflow-wrap: anywhere; }
+.bh-welcome__sub { margin-top: var(--space-4); font-size: 0.9rem; color: var(--muted-soft); }
+.bh-welcome .bh-stats { flex: 1 1 260px; }
+.bh-welcome .bh-stats--boxes .bh-stats__item { flex: 1; min-width: 0; }
+
+.bh-tabs { margin-bottom: var(--space-24); }
+
+/* ---------- Section heading ---------- */
+.bh-section-title { margin-bottom: var(--space-16); font-size: 1.1rem; font-weight: 700; }
+
+/* ---------- Form card ---------- */
+.bh-form-card__title { margin-bottom: var(--space-4); font-size: 1.25rem; font-weight: 700; }
+.bh-form-card__sub { margin-bottom: var(--space-24); font-size: 0.9rem; color: var(--muted-text); }
+.bh-form { display: flex; flex-direction: column; gap: var(--space-16); }
+
+/* ---------- Lists + job cards ---------- */
+.bh-list { display: flex; flex-direction: column; gap: var(--space-16); }
+.bh-job { display: flex; flex-direction: column; gap: var(--space-16); }
+.bh-job__head { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-16); }
+.bh-job__tile {
+  width: 44px; height: 44px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--yellow); color: var(--ink); border-radius: var(--radius-tile);
+}
+.bh-job__titles { flex: 1 1 140px; min-width: 0; }
+.bh-job__title { font-size: 1.05rem; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.bh-job__skill { margin-top: var(--space-4); font-size: 0.85rem; color: var(--muted-text); }
+.bh-job__desc { font-size: 0.92rem; line-height: 1.6; color: var(--muted-text); overflow-wrap: anywhere; }
+.bh-job__meta { display: flex; flex-wrap: wrap; gap: var(--space-8) var(--space-24); }
+.bh-job__meta-item { display: inline-flex; align-items: center; gap: var(--space-8); font-size: 0.85rem; color: var(--muted-text); }
+.bh-job__actions { display: flex; flex-wrap: wrap; gap: var(--space-12); }
+.bh-job__actions .bh-btn { flex: 1 1 180px; }
+
+.bh-worker {
+  display: flex; align-items: center; gap: var(--space-12);
+  padding: var(--space-12) var(--space-16);
+  background: var(--inset); border-radius: var(--radius-input);
+}
+.bh-worker__name { font-size: 0.9rem; font-weight: 500; }
+.bh-worker__rating { display: inline-flex; align-items: center; gap: var(--space-4); margin-top: 2px; font-size: 0.8rem; color: var(--muted-text); }
+
+.bh-review { display: flex; flex-direction: column; gap: var(--space-16); }
+.bh-job__done { display: flex; flex-direction: column; gap: var(--space-12); }
+
+/* ---------- Page-level toast area ---------- */
+.bh-toast { margin-bottom: var(--space-16); }
+
+/* ---------- Admin ---------- */
+.bh-admin__head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-24); margin-bottom: var(--space-32); }
+.bh-admin__title { margin: var(--space-8) 0; font-size: clamp(2rem, 4vw, 2.75rem); }
+.bh-admin__sub { color: var(--muted-text); }
+.bh-admin__tabs { max-width: 360px; margin-bottom: var(--space-24); }
+.bh-count { display: flex; align-items: baseline; gap: var(--space-8); }
+@media (max-width: 640px) {
+  .bh-card.bh-count { padding: var(--space-12) var(--space-16); }
+}
+.bh-count__num { font-family: var(--font-display); font-size: 2rem; font-weight: 800; line-height: 1; color: var(--yellow); }
+.bh-count__lbl { font-size: 0.85rem; color: var(--muted-soft); }
+
+.bh-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-16); }
+.bh-row__identity { display: flex; align-items: center; gap: var(--space-16); flex: 1 1 260px; min-width: 0; }
+.bh-row__name { display: block; font-weight: 500; overflow-wrap: anywhere; }
+.bh-row__meta { margin-top: var(--space-4); font-size: 0.85rem; color: var(--muted-text); overflow-wrap: anywhere; }
+.bh-row__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8); }
+
+/* ---------- Worker: availability toggle in the nav ---------- */
+.bh-avail { display: inline-flex; align-items: center; gap: var(--space-8); }
+.bh-avail__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+.bh-avail.is-on .bh-avail__dot { background: var(--success); }
+.bh-avail__label { font-size: 0.85rem; font-weight: 500; color: var(--text); }
+@media (max-width: 480px) {
+  .bh-avail__label { display: none; }
+}
+
+/* ---------- Worker: skill chip in the welcome panel ---------- */
+.bh-skill-chip {
+  display: inline-flex; align-items: center; gap: var(--space-8);
+  padding: var(--space-8) var(--space-16); border-radius: var(--radius-pill);
+  background: var(--yellow); color: var(--ink); font-size: 0.9rem; font-weight: 500;
+}
+
+/* ---------- Worker: accepted job view ---------- */
+.bh-banner { display: flex; align-items: center; gap: var(--space-16); margin-bottom: var(--space-16); }
+.bh-banner__icon {
+  width: 44px; height: 44px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--yellow); color: var(--ink); border-radius: var(--radius-tile);
+}
+.bh-banner__text { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; line-height: 1.3; color: var(--white); }
+
+.bh-details { display: grid; grid-template-columns: 1fr; gap: var(--space-16); margin-bottom: var(--space-16); }
+@media (min-width: 520px) { .bh-details { grid-template-columns: 1fr 1fr; } }
+.bh-detail__label { margin-bottom: var(--space-4); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-text); }
+.bh-detail__value { font-size: 1rem; font-weight: 500; overflow-wrap: anywhere; }
+.bh-block { margin-bottom: var(--space-16); }
+.bh-map { display: block; width: 100%; border: 0; border-radius: var(--radius-input); }
+/* the embedded map can't be themed, so it is inverted into a night map */
+:root[data-theme='dark'] .bh-map { filter: invert(0.92) hue-rotate(180deg) contrast(0.92) saturate(0.85); }
+
+.bh-actions { display: flex; flex-wrap: wrap; gap: var(--space-12); }
+.bh-actions .bh-btn { flex: 1 1 220px; }

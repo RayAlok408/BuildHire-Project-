@@ -1,11 +1,24 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Alert, Button, Card, Field, Icon, Logo, SkipLink, StatBar, ThemeToggle, stagger } from '../components';
+import { clearSession } from '../session';
+import { useDocumentTitle } from '../hooks';
+import './Auth.css';
 
 const API = 'https://buildhire-server.onrender.com';
 
+const BRAND_STATS = [
+  { value: '500+', label: 'Workers' },
+  { value: '1000+', label: 'Jobs Done' },
+  { value: <>4.8<Icon name="star" size={22} /></>, label: 'Avg Rating' },
+];
+
 function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const expired = searchParams.get('expired') === '1';
+  useDocumentTitle('Log in');
   const [form, setForm] = useState({ email: '', password: '' });
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,7 +31,7 @@ function Login() {
     }
     try {
       setLoading(true);
-      localStorage.clear();
+      clearSession();
       const res = await axios.post(`${API}/api/auth/login`, form);
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
@@ -35,95 +48,76 @@ function Login() {
   const handleKey = e => { if (e.key === 'Enter') submit(); };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.left}>
-        <h1 style={styles.brand}>BuildHire</h1>
-        <p style={styles.tagline}>Your trusted platform for hiring skilled workers nearby</p>
-        <div style={styles.statsRow}>
-          <div style={styles.stat}>
-            <span style={styles.statNum}>500+</span>
-            <span style={styles.statLabel}>Workers</span>
-          </div>
-          <div style={styles.stat}>
-            <span style={styles.statNum}>1000+</span>
-            <span style={styles.statLabel}>Jobs Done</span>
-          </div>
-          <div style={styles.stat}>
-            <span style={styles.statNum}>4.8★</span>
-            <span style={styles.statLabel}>Avg Rating</span>
-          </div>
+    <div className="bh-auth">
+      <SkipLink />
+      <ThemeToggle className="bh-auth__theme" />
+      <aside className="bh-auth__brand bh-on-ink">
+        <Logo tone="dark" />
+        <div>
+          <h1 className="bh-auth__headline bh-rise">
+            Your trusted platform for hiring skilled workers <span className="bh-auth__accent">nearby</span>
+          </h1>
+          <StatBar tone="dark" items={BRAND_STATS} className="bh-rise" style={stagger(1)} />
         </div>
-      </div>
+      </aside>
 
-      <div style={styles.right}>
-        <div style={styles.card}>
-          <div style={styles.iconCircle}>BH</div>
-          <h2 style={styles.title}>Welcome back</h2>
-          <p style={styles.subtitle}>Don't have an account? <span style={styles.link} onClick={() => navigate('/register')}>Sign up free</span></p>
+      <main id="main" tabIndex={-1} className="bh-auth__main bh-backdrop">
+        <Card className="bh-auth__card bh-rise" style={stagger(1)}>
+          <h2 className="bh-auth__title">Welcome back</h2>
+          <p className="bh-auth__sub">
+            Don't have an account? <button type="button" className="bh-link" onClick={() => navigate('/register')}>Sign up free</button>
+          </p>
 
-          <div style={styles.field}>
-            <label style={styles.label}>Email Address</label>
-            <input style={styles.input} name="email" type="email" placeholder="Enter your email" value={form.email} onChange={handle} onKeyDown={handleKey} />
+          {expired && !msg && <Alert tone="info" className="bh-toast">Your session has expired. Please log in again.</Alert>}
+
+          <div className="bh-auth__form">
+            <Field
+              label="Email Address"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="Enter your email"
+              value={form.email}
+              onChange={handle}
+              onKeyDown={handleKey}
+            />
+            <Field
+              label="Password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="Enter your password"
+              value={form.password}
+              onChange={handle}
+              onKeyDown={handleKey}
+            />
+
+            {msg && <Alert tone="error">{msg}</Alert>}
+
+            <Button full loading={loading} onClick={submit}>
+              {loading ? 'Logging in' : 'Login to BuildHire'}
+            </Button>
+
+            <div className="bh-divider">or use test account</div>
           </div>
-          <div style={styles.field}>
-            <label style={styles.label}>Password</label>
-            <input style={styles.input} name="password" type="password" placeholder="Enter your password" value={form.password} onChange={handle} onKeyDown={handleKey} />
-          </div>
 
-          {msg && <div style={styles.errorBox}>{msg}</div>}
-
-          <button style={styles.btn} onClick={submit} disabled={loading}>
-            {loading ? 'Logging in...' : 'Login to BuildHire'}
-          </button>
-
-          <div style={styles.divider}>or use test account</div>
-
-          <div style={styles.testAccounts}>
-            <p style={styles.testTitle}>Quick login for testing</p>
-            <div style={styles.testRow}>
-              <div style={styles.testCard} onClick={() => setForm({ email: 'client@test.com', password: '123456' })}>
-                <span style={styles.testRole}>Client</span>
-                <span style={styles.testEmail}>client@test.com</span>
-              </div>
-              <div style={styles.testCard} onClick={() => setForm({ email: 'worker@test.com', password: '123456' })}>
-                <span style={styles.testRole}>Worker</span>
-                <span style={styles.testEmail}>worker@test.com</span>
-              </div>
+          <div className="bh-test">
+            <p className="bh-test__title">Quick login for testing</p>
+            <div className="bh-test__row">
+              <button type="button" className="bh-test__tile" onClick={() => setForm({ email: 'client@test.com', password: '123456' })}>
+                <span className="bh-test__role"><Icon name="user" size={16} />Client</span>
+                <span className="bh-test__email">client@test.com</span>
+              </button>
+              <button type="button" className="bh-test__tile" onClick={() => setForm({ email: 'worker@test.com', password: '123456' })}>
+                <span className="bh-test__role"><Icon name="wrench" size={16} />Worker</span>
+                <span className="bh-test__email">worker@test.com</span>
+              </button>
             </div>
           </div>
-        </div>
-      </div>
+        </Card>
+      </main>
     </div>
   );
 }
-
-const styles = {
-  page: { display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif' },
-  left: { flex: 1, background: '#1e40af', padding: '3rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', color: '#fff' },
-  brand: { fontSize: '2.5rem', fontWeight: '800', margin: '0 0 1rem' },
-  tagline: { fontSize: '1.1rem', opacity: 0.85, margin: '0 0 3rem', lineHeight: 1.6, maxWidth: '320px' },
-  statsRow: { display: 'flex', gap: '2rem' },
-  stat: { display: 'flex', flexDirection: 'column', gap: '0.2rem' },
-  statNum: { fontSize: '1.8rem', fontWeight: '800' },
-  statLabel: { fontSize: '0.85rem', opacity: 0.75 },
-  right: { flex: 1, background: '#f8faff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' },
-  card: { background: '#fff', padding: '2.5rem', borderRadius: '16px', border: '1px solid #e5e7eb', width: '100%', maxWidth: '400px' },
-  iconCircle: { width: '48px', height: '48px', background: '#2563eb', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '800', fontSize: '1rem', marginBottom: '1.2rem' },
-  title: { fontSize: '1.6rem', fontWeight: '700', color: '#1e293b', margin: '0 0 0.3rem' },
-  subtitle: { fontSize: '0.9rem', color: '#64748b', margin: '0 0 1.8rem' },
-  link: { color: '#2563eb', cursor: 'pointer', fontWeight: '600' },
-  field: { marginBottom: '1rem' },
-  label: { display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#374151', marginBottom: '0.4rem' },
-  input: { width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '0.95rem', boxSizing: 'border-box' },
-  errorBox: { background: '#fee2e2', color: '#dc2626', padding: '0.75rem', borderRadius: '8px', fontSize: '0.9rem', marginBottom: '1rem', textAlign: 'center' },
-  btn: { width: '100%', padding: '0.9rem', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: '700', marginBottom: '1.2rem' },
-  divider: { textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem', margin: '0 0 1rem' },
-  testAccounts: { background: '#f8faff', borderRadius: '10px', padding: '1rem', border: '1px solid #e5e7eb' },
-  testTitle: { fontSize: '0.8rem', color: '#94a3b8', margin: '0 0 0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' },
-  testRow: { display: 'flex', gap: '0.8rem' },
-  testCard: { flex: 1, background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '0.7rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '0.2rem' },
-  testRole: { fontSize: '0.75rem', color: '#2563eb', fontWeight: '700' },
-  testEmail: { fontSize: '0.75rem', color: '#64748b' },
-};
 
 export default Login;

@@ -1,0 +1,137 @@
+/* Landing page layout. Colours, radii, fonts and the shadow come from theme.js variables. */
+
+.bh-page { background: var(--bg); color: var(--text); font-family: var(--font-body); }
+
+/* ---------- Hero ---------- */
+.bh-hero {
+  position: relative; overflow: hidden;
+  min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+  padding: calc(var(--space-96) + var(--space-32)) 6% var(--space-64);
+}
+
+.bh-live-pill {
+  display: inline-flex; align-items: center; gap: var(--space-8);
+  margin-bottom: var(--space-32); padding: var(--space-8) var(--space-16);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-pill);
+  font-size: 0.82rem; font-weight: 500; color: var(--muted-text);
+}
+.bh-live-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: bh-pulse 2s infinite; }
+
+.bh-hero__title { font-size: clamp(2.5rem, 7vw, 6rem); line-height: 1.05; margin-bottom: var(--space-24); }
+
+.bh-hero__lead {
+  max-width: 500px; margin-bottom: var(--space-32);
+  font-size: 1.15rem; font-weight: 300; line-height: 1.75; color: var(--muted-text);
+}
+.bh-hero__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-16); margin-bottom: var(--space-64); }
+.bh-hero__stats { max-width: 100%; }
+@media (max-width: 640px) {
+  .bh-hero__stats { width: 100%; }
+  .bh-hero__actions { width: 100%; }
+  .bh-hero__actions .bh-btn { width: 100%; }
+}
+
+/* ---------- Marquee ---------- */
+.bh-marquee-wrap { background: var(--solid); color: var(--on-solid); padding: var(--space-16) 0; overflow: hidden; white-space: nowrap; }
+.bh-marquee {
+  display: inline-flex; animation: bh-marquee 20s linear infinite;
+  font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; letter-spacing: 0.05em;
+}
+.bh-marquee__group { display: inline-flex; flex-shrink: 0; }
+.bh-marquee__item { display: inline-flex; align-items: center; gap: var(--space-8); padding-right: var(--space-48); }
+
+/* ---------- Section scaffolding ---------- */
+.bh-section { padding: var(--space-96) 6%; }
+.bh-section--white { background: var(--surface); }
+.bh-section--ink { background: var(--panel); border-block: 1px solid var(--panel-border); }
+
+.bh-section__title { margin-bottom: var(--space-64); font-size: clamp(2rem, 4vw, 3rem); color: var(--text); }
+.bh-section--ink .bh-eyebrow { color: var(--muted-soft); }
+.bh-section--ink .bh-section__title { color: var(--white); }
+@media (max-width: 640px) {
+  .bh-section { padding: var(--space-64) 6%; }
+  .bh-section__title { margin-bottom: var(--space-32); }
+}
+
+/* ---------- How it works ---------- */
+.bh-steps { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-24); }
+/* Ink digits over the same yellow marker as the hero's "instantly" (yellow text on white fails AA). */
+.bh-step__num {
+  position: relative; isolation: isolate; display: block; width: fit-content; margin-bottom: var(--space-16);
+  font-family: var(--font-display); font-size: 4rem; font-weight: 800; line-height: 1; color: var(--text);
+}
+.bh-step__num::after {
+  content: ''; position: absolute; left: calc(var(--space-4) * -1); right: calc(var(--space-4) * -1); bottom: 6px; height: 20px;
+  background: var(--yellow); border-radius: var(--space-4); z-index: -1;
+}
+.bh-step__icon { margin-bottom: var(--space-16); color: var(--text); }
+.bh-step__title { margin-bottom: var(--space-8); font-size: 1.1rem; font-weight: 700; color: var(--text); }
+.bh-step__text { font-size: 0.88rem; line-height: 1.65; color: var(--muted-text); }
+
+/* ---------- Services (dark) ---------- */
+.bh-services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-16); }
+@media (min-width: 640px) { .bh-services-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1100px) { .bh-services-grid { grid-template-columns: repeat(6, 1fr); } }
+.bh-service { width: 100%; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; text-align: left; cursor: pointer; font: inherit; }
+.bh-service__icon { margin-bottom: var(--space-16); color: var(--yellow); transition: color var(--motion-base) var(--motion-ease); }
+.bh-service__name { margin-bottom: var(--space-4); font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: var(--white); transition: color var(--motion-base) var(--motion-ease); }
+.bh-service__desc { font-size: 0.82rem; line-height: 1.5; color: var(--muted-soft); transition: color var(--motion-base) var(--motion-ease); }
+.bh-service:hover, .bh-service:focus-visible { background: var(--yellow); border-color: var(--yellow); }
+.bh-service:hover .bh-service__icon, .bh-service:focus-visible .bh-service__icon,
+.bh-service:hover .bh-service__name, .bh-service:focus-visible .bh-service__name,
+.bh-service:hover .bh-service__desc, .bh-service:focus-visible .bh-service__desc { color: var(--ink); }
+.bh-service:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
+
+/* ---------- Features ---------- */
+.bh-features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-24); }
+.bh-feature__icon {
+  width: 48px; height: 48px; margin-bottom: var(--space-16);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--yellow); color: var(--ink); border-radius: var(--radius-tile);
+}
+.bh-feature__title { margin-bottom: var(--space-8); font-size: 1rem; font-weight: 700; color: var(--text); }
+.bh-feature__text { font-size: 0.88rem; line-height: 1.65; color: var(--muted-text); }
+@media (max-width: 480px) {
+  .bh-features-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- CTA (yellow) ---------- */
+.bh-cta { padding: var(--space-96) 6%; background: var(--yellow); text-align: center; }
+.bh-cta__title { margin-bottom: var(--space-16); font-size: clamp(2.5rem, 5vw, 4rem); color: var(--ink); }
+.bh-cta__text { margin: 0 auto var(--space-32); max-width: 520px; font-size: 1.1rem; color: var(--ink); }
+.bh-cta__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-16); }
+@media (max-width: 640px) {
+  .bh-cta { padding: var(--space-64) 6%; }
+  .bh-cta__actions .bh-btn { width: 100%; }
+}
+
+/* the CTA band is yellow in both themes, so its controls keep the light-theme look */
+.bh-cta .bh-btn--primary { background: var(--ink); color: var(--yellow); }
+.bh-cta :focus-visible { outline-color: var(--ink); }
+
+/* ---------- Footer ---------- */
+.bh-footer {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-16);
+  padding: var(--space-48) 6%; background: var(--ink-deep);
+}
+.bh-footer { border-top: 1px solid var(--panel-border); }
+.bh-footer__right { font-size: 0.85rem; color: var(--muted-soft); }
+.bh-footer__links { display: flex; gap: var(--space-24); margin-top: var(--space-4); }
+.bh-footer__link {
+  padding: var(--space-4) 0; background: none; border: 0;
+  font: inherit; font-size: 0.85rem; color: var(--muted-soft); cursor: pointer;
+  transition: color var(--motion-base) var(--motion-ease);
+}
+.bh-footer__link:hover { color: var(--yellow); }
+.bh-footer :focus-visible { outline-color: var(--yellow); }
+
+/* ---------- Dark: step numbers are plain yellow (the marker would hide cream digits) ---------- */
+:root[data-theme='dark'] .bh-step__num { color: var(--yellow); }
+:root[data-theme='dark'] .bh-step__num::after { display: none; }
+
+/* ---------- Motion off ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .bh-marquee { animation: none; }
+  .bh-live-dot { animation: none; }
+}

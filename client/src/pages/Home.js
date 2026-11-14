@@ -1,236 +1,189 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Button, Card, Icon, Logo, Reveal, StatBar, TopNav, stagger } from '../components';
+import { clearSession, getUser, homePathFor, isSignedIn } from '../session';
+import { useDocumentTitle } from '../hooks';
+import './Home.css';
+
+const MARQUEE_ITEMS = [
+  { icon: 'bolt', label: 'Real-time notifications' },
+  { icon: 'map-pin', label: 'Location based matching' },
+  { icon: 'star', label: 'Verified workers' },
+  { icon: 'map', label: 'Live map directions' },
+  { icon: 'shield', label: 'Secure platform' },
+];
+
+const STEPS = [
+  { num: '01', icon: 'file-plus', title: 'Post your requirement', desc: 'Describe what you need in seconds. Tap repair, wiring, painting, carpentry — we cover it all.' },
+  { num: '02', icon: 'radio', title: 'Workers get notified', desc: 'All available skilled workers within 10km receive an instant real-time notification.' },
+  { num: '03', icon: 'user-check', title: 'Worker accepts & arrives', desc: 'The nearest available worker accepts your job and gets map directions to your location.' },
+  { num: '04', icon: 'star', title: 'Rate the service', desc: 'After completion, rate and review the worker to build community trust.' },
+];
+
+const SERVICES = [
+  { icon: 'wrench', name: 'Plumber', desc: 'Tap, pipe & drainage repairs' },
+  { icon: 'bolt', name: 'Electrician', desc: 'Wiring, switches & fittings' },
+  { icon: 'saw', name: 'Carpenter', desc: 'Furniture & woodwork' },
+  { icon: 'brush', name: 'Painter', desc: 'Wall & surface painting' },
+  { icon: 'spray', name: 'Cleaner', desc: 'Home & office cleaning' },
+  { icon: 'plus', name: 'More soon', desc: 'More services coming' },
+];
+
+const FEATURES = [
+  { icon: 'bolt', title: 'Real-time matching', desc: 'Workers get notified the moment you post. No delays, no waiting around.' },
+  { icon: 'map-pin', title: 'Location based', desc: 'Only workers within 10km are notified — guaranteed fast arrival.' },
+  { icon: 'shield', title: 'Secure platform', desc: 'JWT authentication and encrypted passwords keep your account safe.' },
+  { icon: 'star', title: 'Ratings & reviews', desc: 'Every worker has a public rating so you always know who you are hiring.' },
+  { icon: 'map', title: 'Live map directions', desc: 'Workers get Google Maps directions to your location instantly on acceptance.' },
+  { icon: 'smartphone', title: 'Any device', desc: 'Use BuildHire on your phone, tablet or computer — fully responsive.' },
+];
+
+const HERO_STATS = [
+  { value: '500+', label: 'Skilled Workers' },
+  { value: '1000+', label: 'Jobs Completed' },
+  { value: <>4.8<Icon name="star" size={22} /></>, label: 'Avg Rating' },
+  { value: '10km', label: 'Search Radius' },
+];
+
+function SectionHead({ eyebrow, title }) {
+  return (
+    <Reveal>
+      <div className="bh-eyebrow">{eyebrow}</div>
+      <h2 className="bh-section__title">{title}</h2>
+    </Reveal>
+  );
+}
 
 function Home() {
   const navigate = useNavigate();
-  const heroRef = useRef(null);
-
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { overflow-x: hidden; }
-      .bh-page { font-family: 'DM Sans', sans-serif; background: #fafaf8; color: #1a1a1a; }
-      .bh-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 6%; background: rgba(250,250,248,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,0.06); }
-      .bh-logo { display: flex; align-items: center; gap: 0.7rem; cursor: pointer; }
-      .bh-logo-mark { width: 40px; height: 40px; background: #1a1a1a; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #f5f01a; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; }
-      .bh-logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; color: #1a1a1a; }
-      .bh-nav-links { display: flex; gap: 0.8rem; align-items: center; }
-      .bh-nav-login { padding: 0.6rem 1.3rem; background: transparent; border: 1.5px solid #d4d4d4; color: #1a1a1a; border-radius: 100px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; }
-      .bh-nav-login:hover { border-color: #1a1a1a; }
-      .bh-nav-cta { padding: 0.6rem 1.3rem; background: #1a1a1a; border: none; color: #f5f01a; border-radius: 100px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; }
-      .bh-nav-cta:hover { background: #333; transform: translateY(-1px); }
-      .bh-hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 8rem 6% 5rem; position: relative; overflow: hidden; }
-      .bh-hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 20%, #f5f01a22 0%, transparent 70%); pointer-events: none; }
-      .bh-hero-grid { position: absolute; inset: 0; background-image: linear-gradient(#e5e5e5 1px, transparent 1px), linear-gradient(90deg, #e5e5e5 1px, transparent 1px); background-size: 40px 40px; opacity: 0.4; pointer-events: none; }
-      .bh-live-pill { display: inline-flex; align-items: center; gap: 0.5rem; background: #fff; border: 1px solid #e5e5e5; padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.82rem; font-weight: 500; color: #555; margin-bottom: 2rem; }
-      .bh-live-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; animation: livePulse 2s infinite; }
-      @keyframes livePulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(1.3); } }
-      .bh-hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(3rem, 7vw, 6rem); font-weight: 800; line-height: 1.05; color: #1a1a1a; margin-bottom: 1.5rem; position: relative; z-index: 1; }
-      .bh-hero h1 em { font-style: normal; color: transparent; -webkit-text-stroke: 2px #1a1a1a; }
-      .bh-hero h1 .bh-highlight { position: relative; display: inline-block; }
-      .bh-hero h1 .bh-highlight::after { content:''; position:absolute; bottom: 4px; left:0; right:0; height:12px; background:#f5f01a; z-index:-1; border-radius:4px; }
-      .bh-hero p { font-size: 1.15rem; color: #666; max-width: 500px; line-height: 1.75; margin-bottom: 2.5rem; font-weight: 300; position: relative; z-index: 1; }
-      .bh-hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; position: relative; z-index: 1; margin-bottom: 4rem; }
-      .bh-btn-main { padding: 1rem 2.2rem; background: #1a1a1a; color: #f5f01a; border: none; border-radius: 100px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
-      .bh-btn-main:hover { background: #333; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
-      .bh-btn-ghost { padding: 1rem 2.2rem; background: transparent; color: #1a1a1a; border: 1.5px solid #d4d4d4; border-radius: 100px; font-size: 1rem; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
-      .bh-btn-ghost:hover { border-color: #1a1a1a; transform: translateY(-2px); }
-      .bh-stats-bar { display: flex; gap: 0; background: #fff; border: 1px solid #e5e5e5; border-radius: 20px; overflow: hidden; position: relative; z-index: 1; }
-      .bh-stat-item { padding: 1.2rem 2rem; text-align: center; border-right: 1px solid #e5e5e5; flex: 1; }
-      .bh-stat-item:last-child { border-right: none; }
-      .bh-stat-num { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: #1a1a1a; display: block; }
-      .bh-stat-lbl { font-size: 0.78rem; color: #999; margin-top: 0.2rem; display: block; }
-      .bh-marquee-wrap { background: #1a1a1a; color: #f5f01a; padding: 1rem 0; overflow: hidden; white-space: nowrap; }
-      .bh-marquee { display: inline-block; animation: marquee 20s linear infinite; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem; letter-spacing: 0.05em; }
-      @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-      .bh-how { padding: 7rem 6%; background: #fafaf8; }
-      .bh-section-eyebrow { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #999; margin-bottom: 0.8rem; }
-      .bh-section-h2 { font-family: 'Syne', sans-serif; font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; color: #1a1a1a; margin-bottom: 4rem; }
-      .bh-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
-      .bh-step { background: #fff; border: 1px solid #e5e5e5; border-radius: 24px; padding: 2.5rem 2rem; position: relative; transition: transform 0.2s, box-shadow 0.2s; }
-      .bh-step:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
-      .bh-step-num { font-family: 'Syne', sans-serif; font-size: 4rem; font-weight: 800; color: #f5f01a; line-height: 1; margin-bottom: 1rem; }
-      .bh-step-icon { font-size: 2rem; margin-bottom: 1rem; }
-      .bh-step h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; color: #1a1a1a; margin-bottom: 0.5rem; }
-      .bh-step p { font-size: 0.88rem; color: #777; line-height: 1.65; }
-      .bh-services { padding: 7rem 6%; background: #1a1a1a; }
-      .bh-services .bh-section-eyebrow { color: #666; }
-      .bh-services .bh-section-h2 { color: #fff; }
-      .bh-services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
-      .bh-service-card { background: #242424; border: 1px solid #333; border-radius: 20px; padding: 1.8rem 1.5rem; cursor: pointer; transition: all 0.2s; }
-      .bh-service-card:hover { background: #f5f01a; border-color: #f5f01a; transform: translateY(-4px); }
-      .bh-service-card:hover .bh-service-name { color: #1a1a1a; }
-      .bh-service-card:hover .bh-service-desc { color: #444; }
-      .bh-service-icon { font-size: 2.2rem; margin-bottom: 1rem; }
-      .bh-service-name { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 0.3rem; }
-      .bh-service-desc { font-size: 0.8rem; color: #666; line-height: 1.5; }
-      .bh-features { padding: 7rem 6%; background: #fff; }
-      .bh-features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
-      .bh-feature { background: #fafaf8; border: 1px solid #eee; border-radius: 20px; padding: 2rem; }
-      .bh-feature-icon { width: 48px; height: 48px; background: #f5f01a; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 1.2rem; }
-      .bh-feature h3 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: #1a1a1a; margin-bottom: 0.5rem; }
-      .bh-feature p { font-size: 0.88rem; color: #777; line-height: 1.65; }
-      .bh-cta { padding: 7rem 6%; background: #f5f01a; text-align: center; }
-      .bh-cta h2 { font-family: 'Syne', sans-serif; font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; color: #1a1a1a; margin-bottom: 1rem; }
-      .bh-cta p { font-size: 1.1rem; color: #555; margin-bottom: 2.5rem; }
-      .bh-cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-      .bh-cta-btn-dark { padding: 1rem 2.5rem; background: #1a1a1a; color: #f5f01a; border: none; border-radius: 100px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
-      .bh-cta-btn-dark:hover { background: #333; transform: translateY(-2px); }
-      .bh-cta-btn-outline { padding: 1rem 2.5rem; background: transparent; color: #1a1a1a; border: 2px solid #1a1a1a; border-radius: 100px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
-      .bh-cta-btn-outline:hover { background: #1a1a1a; color: #f5f01a; transform: translateY(-2px); }
-      .bh-footer { background: #111; padding: 2.5rem 6%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-      .bh-footer-left { display: flex; align-items: center; gap: 0.7rem; }
-      .bh-footer-logo-mark { width: 32px; height: 32px; background: #f5f01a; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #1a1a1a; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.75rem; }
-      .bh-footer-logo-text { font-family: 'Syne', sans-serif; font-weight: 700; color: #fff; font-size: 1rem; }
-      .bh-footer-right { color: #555; font-size: 0.85rem; }
-      .bh-footer-links { display: flex; gap: 1.5rem; margin-top: 0.3rem; }
-      .bh-footer-link { color: #555; cursor: pointer; font-size: 0.85rem; transition: color 0.2s; }
-      .bh-footer-link:hover { color: #f5f01a; }
-    `;
-    document.head.appendChild(style);
-    return () => document.head.removeChild(style);
-  }, []);
-
-  const marqueeText = '⚡ Real-time notifications &nbsp;&nbsp;&nbsp; 📍 Location based matching &nbsp;&nbsp;&nbsp; ⭐ Verified workers &nbsp;&nbsp;&nbsp; 🗺️ Live map directions &nbsp;&nbsp;&nbsp; 🔒 Secure platform &nbsp;&nbsp;&nbsp; ';
+  useDocumentTitle();
+  // Signed-in visitors get a way back to their dashboard instead of Login / Get Started.
+  const [member, setMember] = useState(() => (isSignedIn() ? getUser() : null));
+  const dashboard = member ? homePathFor(member.role) : null;
+  const logout = () => {
+    clearSession();
+    setMember(null);
+  };
 
   return (
     <div className="bh-page">
-      <nav className="bh-nav">
-        <div className="bh-logo">
-          <div className="bh-logo-mark">BH</div>
-          <span className="bh-logo-text">BuildHire</span>
-        </div>
-        <div className="bh-nav-links">
-          <button className="bh-nav-login" onClick={() => navigate('/login')}>Login</button>
-          <button className="bh-nav-cta" onClick={() => navigate('/register')}>Get Started</button>
-        </div>
-      </nav>
+      <TopNav fixed>
+        {member ? (
+          <>
+            <Button variant="ghost" size="sm" icon="log-out" onClick={logout}>Logout</Button>
+            <Button size="sm" onClick={() => navigate(dashboard)}>Dashboard</Button>
+          </>
+        ) : (
+          <>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>Login</Button>
+            <Button size="sm" onClick={() => navigate('/register')}>Get Started</Button>
+          </>
+        )}
+      </TopNav>
 
-      <div className="bh-hero" ref={heroRef}>
-        <div className="bh-hero-bg"></div>
-        <div className="bh-hero-grid"></div>
-        <div className="bh-live-pill">
-          <span className="bh-live-dot"></span>
-          Workers available near you right now
-        </div>
-        <h1>
-          Your home problem,<br />
-          solved <span className="bh-highlight">instantly</span>
-        </h1>
-        <p>Post a job and nearby skilled workers get notified in real time. No waiting, no calls — fast, reliable service at your doorstep.</p>
-        <div className="bh-hero-btns">
-          <button className="bh-btn-main" onClick={() => navigate('/register')}>Post a Job Now</button>
-          <button className="bh-btn-ghost" onClick={() => navigate('/register')}>Join as Worker →</button>
-        </div>
-        <div className="bh-stats-bar">
-          <div className="bh-stat-item">
-            <span className="bh-stat-num">500+</span>
-            <span className="bh-stat-lbl">Skilled Workers</span>
+      <main id="main" tabIndex={-1}>
+        <section className="bh-hero bh-backdrop">
+          <div className="bh-live-pill bh-rise" style={stagger(0)}>
+            <span className="bh-live-dot" />
+            Workers available near you right now
           </div>
-          <div className="bh-stat-item">
-            <span className="bh-stat-num">1000+</span>
-            <span className="bh-stat-lbl">Jobs Completed</span>
+          <h1 className="bh-hero__title bh-rise" style={stagger(1)}>
+            Your home problem,<br />
+            solved <span className="bh-highlight">instantly</span>
+          </h1>
+          <p className="bh-hero__lead bh-rise" style={stagger(2)}>
+            Post a job and nearby skilled workers get notified in real time. No waiting, no calls — fast, reliable service at your doorstep.
+          </p>
+          <div className="bh-hero__actions bh-rise" style={stagger(3)}>
+            <Button size="lg" onClick={() => navigate('/register')}>Post a Job Now</Button>
+            <Button variant="ghost" size="lg" iconRight="arrow-right" onClick={() => navigate('/register')}>Join as Worker</Button>
           </div>
-          <div className="bh-stat-item">
-            <span className="bh-stat-num">4.8★</span>
-            <span className="bh-stat-lbl">Avg Rating</span>
-          </div>
-          <div className="bh-stat-item">
-            <span className="bh-stat-num">10km</span>
-            <span className="bh-stat-lbl">Search Radius</span>
-          </div>
-        </div>
-      </div>
+          <StatBar items={HERO_STATS} className="bh-hero__stats bh-rise" style={stagger(4)} />
+        </section>
 
-      <div className="bh-marquee-wrap">
-        <span className="bh-marquee">
-          {marqueeText.repeat(4)}
-        </span>
-      </div>
+        <div className="bh-marquee-wrap" aria-hidden="true">
+          <div className="bh-marquee">
+            {[0, 1, 2, 3].map(group => (
+              <span className="bh-marquee__group" key={group}>
+                {MARQUEE_ITEMS.map(item => (
+                  <span className="bh-marquee__item" key={item.label}>
+                    <Icon name={item.icon} size={18} />
+                    {item.label}
+                  </span>
+                ))}
+              </span>
+            ))}
+          </div>
+        </div>
 
-      <div className="bh-how">
-        <div className="bh-section-eyebrow">How it works</div>
-        <h2 className="bh-section-h2">Get help in 4 simple steps</h2>
-        <div className="bh-steps">
-          {[
-            { num: '01', icon: '📝', title: 'Post your requirement', desc: 'Describe what you need in seconds. Tap repair, wiring, painting, carpentry — we cover it all.' },
-            { num: '02', icon: '📡', title: 'Workers get notified', desc: 'All available skilled workers within 10km receive an instant real-time notification.' },
-            { num: '03', icon: '🤝', title: 'Worker accepts & arrives', desc: 'The nearest available worker accepts your job and gets map directions to your location.' },
-            { num: '04', icon: '⭐', title: 'Rate the service', desc: 'After completion, rate and review the worker to build community trust.' },
-          ].map((s, i) => (
-            <div key={i} className="bh-step">
-              <div className="bh-step-num">{s.num}</div>
-              <div className="bh-step-icon">{s.icon}</div>
-              <h3>{s.title}</h3>
-              <p>{s.desc}</p>
+        <section className="bh-section">
+          <SectionHead eyebrow="How it works" title="Get help in 4 simple steps" />
+          <Reveal as="ol" group className="bh-steps">
+            {STEPS.map((s, i) => (
+              <Card as="li" key={s.num} hover stagger={i}>
+                <div className="bh-step__num" aria-hidden="true">{s.num}</div>
+                <Icon name={s.icon} size={32} className="bh-step__icon" />
+                <h3 className="bh-step__title">{s.title}</h3>
+                <p className="bh-step__text">{s.desc}</p>
+              </Card>
+            ))}
+          </Reveal>
+        </section>
+
+        <section className="bh-section bh-section--ink bh-on-ink">
+          <SectionHead eyebrow="Our services" title="What can we help you with?" />
+          <Reveal group className="bh-services-grid">
+            {SERVICES.map((s, i) => (
+              <Card as="button" type="button" key={s.name} tone="dark" pad="sm" hover stagger={i} className="bh-service" onClick={() => navigate('/register')}>
+                <Icon name={s.icon} size={32} className="bh-service__icon" />
+                <div className="bh-service__name">{s.name}</div>
+                <div className="bh-service__desc">{s.desc}</div>
+              </Card>
+            ))}
+          </Reveal>
+        </section>
+
+        <section className="bh-section bh-section--white">
+          <SectionHead eyebrow="Why BuildHire" title="Built for speed and trust" />
+          <Reveal group className="bh-features-grid">
+            {FEATURES.map((f, i) => (
+              <Card key={f.title} tone="cream" stagger={i}>
+                <div className="bh-feature__icon"><Icon name={f.icon} size={24} /></div>
+                <h3 className="bh-feature__title">{f.title}</h3>
+                <p className="bh-feature__text">{f.desc}</p>
+              </Card>
+            ))}
+          </Reveal>
+        </section>
+
+        <section className="bh-cta">
+          <Reveal>
+            <h2 className="bh-cta__title">Start using BuildHire today</h2>
+            <p className="bh-cta__text">Join thousands of clients and workers — it is completely free to get started</p>
+            <div className="bh-cta__actions">
+              <Button size="lg" onClick={() => navigate('/register')}>Post a Job</Button>
+              <Button variant="dark" size="lg" onClick={() => navigate('/register')}>Become a Worker</Button>
             </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="bh-services">
-        <div className="bh-section-eyebrow">Our services</div>
-        <h2 className="bh-section-h2">What can we help you with?</h2>
-        <div className="bh-services-grid">
-          {[
-            { icon: '🔧', name: 'Plumber', desc: 'Tap, pipe & drainage repairs' },
-            { icon: '⚡', name: 'Electrician', desc: 'Wiring, switches & fittings' },
-            { icon: '🪚', name: 'Carpenter', desc: 'Furniture & woodwork' },
-            { icon: '🖌️', name: 'Painter', desc: 'Wall & surface painting' },
-            { icon: '🧹', name: 'Cleaner', desc: 'Home & office cleaning' },
-            { icon: '➕', name: 'More soon', desc: 'More services coming' },
-          ].map((s, i) => (
-            <div key={i} className="bh-service-card" onClick={() => navigate('/register')}>
-              <div className="bh-service-icon">{s.icon}</div>
-              <div className="bh-service-name">{s.name}</div>
-              <div className="bh-service-desc">{s.desc}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="bh-features">
-        <div className="bh-section-eyebrow">Why BuildHire</div>
-        <h2 className="bh-section-h2">Built for speed and trust</h2>
-        <div className="bh-features-grid">
-          {[
-            { icon: '⚡', title: 'Real-time matching', desc: 'Workers get notified the moment you post. No delays, no waiting around.' },
-            { icon: '📍', title: 'Location based', desc: 'Only workers within 10km are notified — guaranteed fast arrival.' },
-            { icon: '🔒', title: 'Secure platform', desc: 'JWT authentication and encrypted passwords keep your account safe.' },
-            { icon: '⭐', title: 'Ratings & reviews', desc: 'Every worker has a public rating so you always know who you are hiring.' },
-            { icon: '🗺️', title: 'Live map directions', desc: 'Workers get Google Maps directions to your location instantly on acceptance.' },
-            { icon: '📱', title: 'Any device', desc: 'Use BuildHire on your phone, tablet or computer — fully responsive.' },
-          ].map((f, i) => (
-            <div key={i} className="bh-feature">
-              <div className="bh-feature-icon">{f.icon}</div>
-              <h3>{f.title}</h3>
-              <p>{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="bh-cta">
-        <h2>Start using BuildHire today</h2>
-        <p>Join thousands of clients and workers — it is completely free to get started</p>
-        <div className="bh-cta-btns">
-          <button className="bh-cta-btn-dark" onClick={() => navigate('/register')}>Post a Job</button>
-          <button className="bh-cta-btn-outline" onClick={() => navigate('/register')}>Become a Worker</button>
-        </div>
-      </div>
+          </Reveal>
+        </section>
+      </main>
 
       <footer className="bh-footer">
-        <div className="bh-footer-left">
-          <div className="bh-footer-logo-mark">BH</div>
-          <span className="bh-footer-logo-text">BuildHire</span>
-        </div>
-        <div className="bh-footer-right">
+        <Logo tone="dark" size="sm" />
+        <div className="bh-footer__right">
           <div>© 2026 BuildHire. All rights reserved.</div>
-          <div className="bh-footer-links">
-            <span className="bh-footer-link" onClick={() => navigate('/register')}>Sign Up</span>
-            <span className="bh-footer-link" onClick={() => navigate('/login')}>Login</span>
+          <div className="bh-footer__links">
+            {member ? (
+              <>
+                <button type="button" className="bh-footer__link" onClick={() => navigate(dashboard)}>Dashboard</button>
+                <button type="button" className="bh-footer__link" onClick={logout}>Logout</button>
+              </>
+            ) : (
+              <>
+                <button type="button" className="bh-footer__link" onClick={() => navigate('/register')}>Sign Up</button>
+                <button type="button" className="bh-footer__link" onClick={() => navigate('/login')}>Login</button>
+              </>
+            )}
           </div>
         </div>
       </footer>
